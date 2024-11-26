@@ -32,6 +32,32 @@
 $ npm install
 ```
 
+## Database Setup
+
+This project uses PostgreSQL as its database. Follow these steps to set up your database:
+
+1. Install PostgreSQL on your system if you haven't already:
+   - [PostgreSQL Downloads](https://www.postgresql.org/download/)
+
+2. Create a new PostgreSQL database:
+```bash
+createdb welldone_db
+```
+
+3. Configure your environment variables by creating a `.env` file in the root directory:
+```
+DATABASE_HOST=localhost
+DATABASE_PORT=5432
+DATABASE_USERNAME=your_username
+DATABASE_PASSWORD=your_password
+DATABASE_NAME=welldone
+PORT=3000
+```
+
+Note: Make sure to replace `your_username` and `your_password` with your actual PostgreSQL credentials.
+
+The application will automatically create the necessary tables when it starts, as `synchronize` is set to `true` in development mode.
+
 ## Compile and run the project
 
 ```bash

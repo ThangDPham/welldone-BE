@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { UserStatus } from '../enums/user-status.enum';
 
 @Entity('users')
 export class User {
@@ -28,4 +29,17 @@ export class User {
 
   @Column({ default: true })
   isActive: boolean;
+
+  @Column({ default: false })
+  isEmailVerified: boolean;
+
+  @Column({ nullable: true })
+  emailVerificationToken: string;
+
+  @Column({
+    type: 'enum',
+    enum: UserStatus,
+    default: UserStatus.OFFLINE,
+  })
+  status: UserStatus;
 }

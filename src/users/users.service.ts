@@ -33,10 +33,14 @@ export class UsersService {
     return await this.usersRepository.findOne({ where: { email } });
   }
 
-  async findByVerificationToken(token: string): Promise<User> {
+  async findByEmailAndVerificationCode(
+    email: string,
+    verificationCode: string,
+  ): Promise<User> {
     return await this.usersRepository.findOne({
       where: {
-        emailVerificationToken: token,
+        email,
+        verificationCode,
       },
     });
   }
@@ -51,5 +55,21 @@ export class UsersService {
     if (result.affected === 0) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
+  }
+
+  async updateVerificationCode(
+    email: string,
+    verificationCode: string,
+    expiresAt: Date,
+  ): Promise<void> {
+    const user = await this.findByEmail(email);
+    if (!user) {
+      throw new NotFoundException(`User with email ${email} not found`);
+    }
+
+    await this.usersRepository.update(user.id, {
+      verificationCode,
+      verificationCodeExpiresAt: expiresAt,
+    });
   }
 }

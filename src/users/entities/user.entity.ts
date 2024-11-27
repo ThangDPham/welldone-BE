@@ -33,8 +33,11 @@ export class User {
   @Column({ default: false })
   isEmailVerified: boolean;
 
+  @Column({ nullable: true, length: 6 })
+  verificationCode: string;
+
   @Column({ nullable: true })
-  emailVerificationToken: string;
+  verificationCodeExpiresAt: Date;
 
   @Column({
     type: 'enum',

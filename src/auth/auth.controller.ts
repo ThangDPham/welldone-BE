@@ -20,11 +20,16 @@ import {
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { SignupDto } from './dto/signup.dto';
-import { LoginResponseDto } from './dto/auth-response.dto';
+import {
+  LoginResponseDto,
+  LoginUnverifiedResponseDto,
+} from './dto/auth-response.dto';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { EmailService } from '../shared/services/email.service';
+import { VerifyCodeDto } from './dto/verify-code.dto';
+import { ResendVerificationDto } from './dto/resend-verification.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -60,34 +65,50 @@ export class AuthController {
   @ApiResponse({
     status: 200,
     description: 'User successfully logged in',
-    type: LoginResponseDto,
+    type: () => LoginResponseDto,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'User needs to verify email',
+    type: () => LoginUnverifiedResponseDto,
   })
   @ApiUnauthorizedResponse({
-    description: 'Invalid credentials or email not verified',
+    description: 'Invalid credentials',
   })
   async login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
   }
 
-  @Get('verify-email')
+  @Post('verify-email')
   @ApiOperation({
     summary: 'Verify email address',
-    description: 'Verifies user email using the token sent via email',
-  })
-  @ApiQuery({
-    name: 'token',
-    required: true,
-    description: 'Email verification token',
+    description: 'Verifies user email using the verification code',
   })
   @ApiResponse({
     status: 200,
     description: 'Email successfully verified',
   })
   @ApiBadRequestResponse({
-    description: 'Invalid or expired verification token',
+    description: 'Invalid or expired verification code',
   })
-  async verifyEmail(@Query('token') token: string) {
-    return this.authService.verifyEmail(token);
+  async verifyEmail(@Body() verifyCodeDto: VerifyCodeDto) {
+    return this.authService.verifyEmail(verifyCodeDto);
+  }
+
+  @Post('resend-verification')
+  @ApiOperation({
+    summary: 'Resend verification code',
+    description: 'Sends a new verification code to the user email',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Verification code sent successfully',
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid email or already verified',
+  })
+  async resendVerification(@Body() resendDto: ResendVerificationDto) {
+    return this.authService.resendVerificationCode(resendDto.email);
   }
 
   @Get('test-email')

@@ -9,9 +9,11 @@ export class CreateUserDto {
 
   isActive?: boolean;
 
-  emailVerificationToken?: string;
-
   isEmailVerified?: boolean;
+
+  verificationCode?: string;
+
+  verificationCodeExpiresAt?: Date;
 
   status?: UserStatus;
 }

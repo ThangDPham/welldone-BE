@@ -41,3 +41,17 @@ export class LoginResponseDto {
   })
   user: UserResponseDto;
 }
+
+export class LoginUnverifiedResponseDto {
+  @ApiProperty({
+    description: 'Indicates that email verification is required',
+  })
+  requiresVerification: boolean;
+}
+
+export class SignupResponseDto {
+  @ApiProperty({
+    description: 'Whether verification code was sent successfully',
+  })
+  verificationEmailSent: boolean;
+}

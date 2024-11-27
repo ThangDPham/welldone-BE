@@ -18,21 +18,17 @@ export class EmailService {
     });
   }
 
-  async sendVerificationEmail(to: string, token: string): Promise<void> {
-    const verificationUrl = `${this.configService.get(
-      'FRONTEND_URL',
-    )}/verify-email?token=${token}`;
-
+  async sendVerificationCode(to: string, code: string): Promise<void> {
     const mailOptions = {
       from: this.configService.get('SMTP_FROM'),
       to,
-      subject: 'Verify Your Email',
+      subject: 'Your WellDone Verification Code',
       html: `
         <h1>Welcome to WellDone!</h1>
-        <p>Please verify your email address by clicking the link below:</p>
-        <a href="${verificationUrl}">Verify Email</a>
+        <p>Your verification code is:</p>
+        <h2>${code}</h2>
+        <p>This code will expire in 15 minutes.</p>
         <p>If you didn't create an account, you can safely ignore this email.</p>
-        <p>This link will expire in 24 hours.</p>
       `,
     };
 

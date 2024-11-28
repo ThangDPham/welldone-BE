@@ -15,5 +15,9 @@ export class CreateUserDto {
 
   verificationCodeExpiresAt?: Date;
 
+  passwordResetCode?: string;
+
+  passwordResetCodeExpiresAt?: Date;
+
   status?: UserStatus;
 }

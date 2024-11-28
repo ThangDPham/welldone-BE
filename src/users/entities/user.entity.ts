@@ -45,4 +45,10 @@ export class User {
     default: UserStatus.OFFLINE,
   })
   status: UserStatus;
+
+  @Column({ nullable: true, length: 6 })
+  passwordResetCode: string;
+
+  @Column({ nullable: true })
+  passwordResetCodeExpiresAt: Date;
 }

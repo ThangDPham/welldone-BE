@@ -67,4 +67,26 @@ export class EmailService {
       throw error;
     }
   }
+
+  async sendPasswordResetCode(to: string, code: string): Promise<void> {
+    const mailOptions = {
+      from: this.configService.get('SMTP_FROM'),
+      to,
+      subject: 'WellDone Password Reset Code',
+      html: `
+        <h1>Password Reset Request</h1>
+        <p>You requested to reset your password. Here's your reset code:</p>
+        <h2>${code}</h2>
+        <p>This code will expire in 15 minutes.</p>
+        <p>If you didn't request a password reset, you can safely ignore this email.</p>
+      `,
+    };
+
+    try {
+      await this.transporter.sendMail(mailOptions);
+    } catch (error) {
+      console.error('Failed to send password reset email:', error);
+      throw new Error('Failed to send password reset email');
+    }
+  }
 }

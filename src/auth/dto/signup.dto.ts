@@ -1,4 +1,3 @@
-// auth/dto/signup.dto.ts
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsStrongPassword,

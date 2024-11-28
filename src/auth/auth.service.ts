@@ -15,6 +15,7 @@ import { User } from '../users/entities/user.entity';
 import { EmailService } from '../shared/services/email.service';
 import { LoginResponseDto } from './dto/auth-response.dto';
 import { VerifyCodeDto } from './dto/verify-code.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -199,5 +200,59 @@ export class AuthService {
       sub: user.id,
     };
     return this.jwtService.sign(payload);
+  }
+
+  async forgotPassword(email: string) {
+    const user = await this.usersService.findByEmail(email);
+    if (!user) {
+      return {
+        message:
+          'If your email is registered, you will receive a password reset code.',
+      };
+    }
+
+    const resetCode = this.generateVerificationCode();
+    const resetCodeExpiresAt = this.getVerificationCodeExpiry();
+
+    await this.usersService.update(user.id, {
+      passwordResetCode: resetCode,
+      passwordResetCodeExpiresAt: resetCodeExpiresAt,
+    });
+
+    await this.emailService.sendPasswordResetCode(email, resetCode);
+
+    return {
+      message:
+        'If your email is registered, you will receive a password reset code.',
+    };
+  }
+
+  async resetPassword(resetPasswordDto: ResetPasswordDto) {
+    const user = await this.usersService.findByEmail(resetPasswordDto.email);
+    if (!user) {
+      throw new BadRequestException('Invalid reset attempt');
+    }
+
+    if (
+      !user.passwordResetCode ||
+      user.passwordResetCode !== resetPasswordDto.code ||
+      new Date() > user.passwordResetCodeExpiresAt
+    ) {
+      throw new BadRequestException('Invalid or expired reset code');
+    }
+
+    const hashedPassword = await this.hashPassword(
+      resetPasswordDto.newPassword,
+    );
+
+    await this.usersService.update(user.id, {
+      password: hashedPassword,
+      passwordResetCode: null,
+      passwordResetCodeExpiresAt: null,
+    });
+
+    return {
+      message: 'Password reset successful',
+    };
   }
 }

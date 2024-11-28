@@ -30,6 +30,8 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { EmailService } from '../shared/services/email.service';
 import { VerifyCodeDto } from './dto/verify-code.dto';
 import { ResendVerificationDto } from './dto/resend-verification.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -149,5 +151,34 @@ export class AuthController {
   })
   getProfile(@CurrentUser() user) {
     return user;
+  }
+
+  @Post('forgot-password')
+  @ApiOperation({
+    summary: 'Request password reset',
+    description: 'Sends a password reset code to the provided email',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Reset code sent if email exists',
+  })
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(forgotPasswordDto.email);
+  }
+
+  @Post('reset-password')
+  @ApiOperation({
+    summary: 'Reset password',
+    description: 'Reset password using the code sent to email',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Password reset successful',
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid or expired reset code',
+  })
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    return this.authService.resetPassword(resetPasswordDto);
   }
 }

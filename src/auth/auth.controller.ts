@@ -18,20 +18,19 @@ import {
   ApiBadRequestResponse,
 } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { LoginDto } from './dto/login.dto';
-import { SignupDto } from './dto/signup.dto';
+import { CurrentUser } from './decorators';
+import { JwtAuthGuard, LocalAuthGuard } from './guards';
+import { EmailService } from '../shared/services/email.service';
 import {
+  LoginDto,
   LoginResponseDto,
   LoginUnverifiedResponseDto,
-} from './dto/auth-response.dto';
-import { CurrentUser } from './decorators/current-user.decorator';
-import { LocalAuthGuard } from './guards/local-auth.guard';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { EmailService } from '../shared/services/email.service';
-import { VerifyCodeDto } from './dto/verify-code.dto';
-import { ResendVerificationDto } from './dto/resend-verification.dto';
-import { ForgotPasswordDto } from './dto/forgot-password.dto';
-import { ResetPasswordDto } from './dto/reset-password.dto';
+  SignupDto,
+  VerifyCodeDto,
+  ResendVerificationDto,
+  ForgotPasswordDto,
+  ResetPasswordDto,
+} from './dto';
 
 @ApiTags('auth')
 @Controller('auth')

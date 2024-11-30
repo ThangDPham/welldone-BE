@@ -5,24 +5,23 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
-import { v4 as uuidv4 } from 'uuid';
 import { UsersService } from '../users/users.service';
-import { LoginDto } from './dto/login.dto';
-import { SignupDto } from './dto/signup.dto';
 import { User } from '../users/entities/user.entity';
 import { EmailService } from '../shared/services/email.service';
-import { LoginResponseDto } from './dto/auth-response.dto';
-import { VerifyCodeDto } from './dto/verify-code.dto';
-import { ResetPasswordDto } from './dto/reset-password.dto';
+import {
+  LoginDto,
+  LoginResponseDto,
+  SignupDto,
+  VerifyCodeDto,
+  ResetPasswordDto,
+} from './dto';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
-    private configService: ConfigService,
     private emailService: EmailService,
   ) {}
 

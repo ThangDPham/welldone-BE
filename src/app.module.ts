@@ -21,8 +21,21 @@ import { AuthModule } from './auth/auth.module';
         password: configService.get('DATABASE_PASSWORD'),
         database: configService.get('DATABASE_NAME'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: true, // set to false in production
+        synchronize: true,
         logging: true,
+        logger: 'advanced-console',
+        ssl: {
+          rejectUnauthorized: false,
+        },
+        retryAttempts: 5,
+        retryDelay: 3000,
+        autoLoadEntities: true,
+        keepConnectionAlive: true,
+        verboseRetryLog: true,
+        extra: {
+          max: 20,
+          connectionTimeoutMillis: 10000,
+        },
       }),
       inject: [ConfigService],
     }),

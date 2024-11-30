@@ -29,6 +29,22 @@ export class UsersService {
     return user;
   }
 
+  async findByEmail(email: string): Promise<User> {
+    return await this.usersRepository.findOne({ where: { email } });
+  }
+
+  async findByEmailAndVerificationCode(
+    email: string,
+    verificationCode: string,
+  ): Promise<User> {
+    return await this.usersRepository.findOne({
+      where: {
+        email,
+        verificationCode,
+      },
+    });
+  }
+
   async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
     await this.usersRepository.update(id, updateUserDto);
     return this.findOne(id);
@@ -39,5 +55,21 @@ export class UsersService {
     if (result.affected === 0) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
+  }
+
+  async updateVerificationCode(
+    email: string,
+    verificationCode: string,
+    expiresAt: Date,
+  ): Promise<void> {
+    const user = await this.findByEmail(email);
+    if (!user) {
+      throw new NotFoundException(`User with email ${email} not found`);
+    }
+
+    await this.usersRepository.update(user.id, {
+      verificationCode,
+      verificationCodeExpiresAt: expiresAt,
+    });
   }
 }

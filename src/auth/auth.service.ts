@@ -16,6 +16,7 @@ import {
   VerifyCodeDto,
   ResetPasswordDto,
 } from './dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -260,5 +261,17 @@ export class AuthService {
       throw new BadRequestException('Invalid reset attempt');
     }
     return user;
+  }
+
+  async changePassword(userId: number, changePasswordDto: ChangePasswordDto) {
+    const user = await this.usersService.findOne(userId);
+
+    if (!user || !(await bcrypt.compare(changePasswordDto.password, user.password))) {
+      throw new BadRequestException('Password is incorrect');
+    }
+    const hashedNewPassword = await this.hashPassword(changePasswordDto.newPassword);
+    await this.usersService.update(user.id, {
+      password:hashedNewPassword
+    });
   }
 }

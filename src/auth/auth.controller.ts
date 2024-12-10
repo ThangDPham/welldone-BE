@@ -7,6 +7,8 @@ import {
   Query,
   HttpCode,
   HttpStatus,
+  Patch,
+  Param,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -31,6 +33,10 @@ import {
   ForgotPasswordDto,
   ResetPasswordDto,
 } from './dto';
+import { UsersService } from 'src/users/users.service';
+import { UpdateUserDto } from 'src/users/dto';
+import { UpdateProfile } from './dto/update-profile.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -38,6 +44,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly emailService: EmailService,
+    private readonly usersService: UsersService,
   ) {}
 
   @Post('signup')
@@ -148,8 +155,26 @@ export class AuthController {
   @ApiUnauthorizedResponse({
     description: 'Not authenticated or invalid token',
   })
-  getProfile(@CurrentUser() user) {
+  async getProfile(@CurrentUser() user) {
     return this.authService.getProfile(user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('updateProfile')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Update current user profile',
+    description: 'change the profile of the currently authenticated user',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Profile updated successfully',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Not authenticated or invalid token',
+  })
+  async updateProfile(@CurrentUser() user, @Body() updateProfile : UpdateProfile) {
+    return await this.usersService.update(user.id, updateProfile);
   }
 
   @Post('forgot-password')
@@ -179,5 +204,24 @@ export class AuthController {
   })
   async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
     return this.authService.resetPassword(resetPasswordDto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('reset-password')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get current user profile',
+    description: 'Returns the profile of the currently authenticated user',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Password has been changed successfully',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Not authenticated or invalid token',
+  })
+  
+  async changePassword(@CurrentUser() user, @Body() changePasswordDto: ChangePasswordDto) {
+    return this.authService.changePassword(user.id, changePasswordDto);
   }
 }

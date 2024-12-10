@@ -4,8 +4,11 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
+  ManyToOne,
 } from 'typeorm';
 import { UserStatus } from '../enums/user-status.enum';
+import { UserRoles } from '../enums';
 
 @Entity('users')
 export class User {
@@ -13,13 +16,33 @@ export class User {
   id: number;
 
   @Column({ length: 100 })
-  name: string;
+  firstname: string;
+
+  @Column({ length: 100 })
+  lastname: string;
+
+  @Column()
+  dateofbirth: Date;
 
   @Column({ unique: true })
   email: string;
 
   @Column()
   password: string;
+
+  @Column({nullable: true})
+  //@ManyToOne()
+  group_id: number;
+
+  @Column({nullable: true})
+  joined_at: Date;
+
+  @Column({
+    type: 'enum',
+    enum: UserRoles,
+    default: UserRoles.Member,
+  })
+  role: UserRoles;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

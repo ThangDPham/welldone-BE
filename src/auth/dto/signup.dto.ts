@@ -1,22 +1,43 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
   IsStrongPassword,
   IsString,
   MinLength,
   MaxLength,
   IsEmail,
+  IsDate,
+  IsDateString,
 } from 'class-validator';
 
 export class SignupDto {
   @ApiProperty({
-    description: 'User full name',
+    description: 'User first name',
     minLength: 2,
     maxLength: 50,
   })
   @IsString()
   @MinLength(2)
   @MaxLength(50)
-  name: string;
+  firstname: string;
+
+  @ApiProperty({
+    description: 'User last name',
+    minLength: 2,
+    maxLength: 100,
+  })
+  @IsString()
+  @MinLength(2)
+  @MaxLength(50)
+  lastname: string;
+
+  @ApiProperty({
+    description: 'User Date of birth',
+    example: '2003/02/27',
+  })
+  @Type(() => Date)
+  @IsDate()
+  dateofbirth: Date;
 
   @ApiProperty({
     description: 'User email address',

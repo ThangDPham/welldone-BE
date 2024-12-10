@@ -149,7 +149,7 @@ export class AuthController {
     description: 'Not authenticated or invalid token',
   })
   getProfile(@CurrentUser() user) {
-    return user;
+    return this.authService.getProfile(user.id);
   }
 
   @Post('forgot-password')

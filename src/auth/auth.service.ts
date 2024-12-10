@@ -88,7 +88,6 @@ export class AuthService {
 
     const verificationCode = this.generateVerificationCode();
     const verificationCodeExpiresAt = this.getVerificationCodeExpiry();
-
     const newUser = await this.usersService.create({
       ...signupDto,
       password: hashedPassword,
@@ -145,7 +144,8 @@ export class AuthService {
       user: {
         id: user.id,
         email: user.email,
-        name: user.name,
+        firstname: user.firstname,
+        lastname: user.lastname,
         isEmailVerified: true,
       },
     };
@@ -253,5 +253,12 @@ export class AuthService {
     return {
       message: 'Password reset successful',
     };
+  }
+  async getProfile(userId: number) {
+    const user = await this.usersService.findById(userId);
+    if (!user) {
+      throw new BadRequestException('Invalid reset attempt');
+    }
+    return user;
   }
 }

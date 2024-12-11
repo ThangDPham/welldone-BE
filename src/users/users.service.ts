@@ -30,7 +30,7 @@ export class UsersService {
 
   async findById(id: number): Promise<User> {
     return await this.usersRepository.findOne({ where: { id }, 
-                                                select:['id','firstname','lastname','dateofbirth','email','group_id','joined_at','role'] });
+                                                select:['id','name','dateofbirth','email','group_id','joined_at','role','updatedAt'] });
   }
   async findByEmail(email: string): Promise<User> {
     return await this.usersRepository.findOne({ where: { email } });
@@ -50,7 +50,7 @@ export class UsersService {
 
   async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
     await this.usersRepository.update(id, updateUserDto);
-    return this.findOne(id);
+    return this.findById(id);
   }
 
   async remove(id: number): Promise<void> {

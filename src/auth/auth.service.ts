@@ -145,8 +145,7 @@ export class AuthService {
       user: {
         id: user.id,
         email: user.email,
-        firstname: user.firstname,
-        lastname: user.lastname,
+        name: user.name,
         isEmailVerified: true,
       },
     };

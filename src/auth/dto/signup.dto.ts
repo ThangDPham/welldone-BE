@@ -6,38 +6,18 @@ import {
   MinLength,
   MaxLength,
   IsEmail,
-  IsDate,
-  IsDateString,
 } from 'class-validator';
 
 export class SignupDto {
   @ApiProperty({
-    description: 'User first name',
+    description: 'User name',
     minLength: 2,
     maxLength: 50,
   })
   @IsString()
   @MinLength(2)
   @MaxLength(50)
-  firstname: string;
-
-  @ApiProperty({
-    description: 'User last name',
-    minLength: 2,
-    maxLength: 100,
-  })
-  @IsString()
-  @MinLength(2)
-  @MaxLength(50)
-  lastname: string;
-
-  @ApiProperty({
-    description: 'User Date of birth',
-    example: '2003/02/27',
-  })
-  @Type(() => Date)
-  @IsDate()
-  dateofbirth: Date;
+  name: string;
 
   @ApiProperty({
     description: 'User email address',

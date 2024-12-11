@@ -16,12 +16,12 @@ export class User {
   id: number;
 
   @Column({ length: 100 })
-  firstname: string;
+  name: string;
 
-  @Column({ length: 100 })
-  lastname: string;
+  // @Column({ length: 100 })
+  // lastname: string;
 
-  @Column()
+  @Column({nullable: true})
   dateofbirth: Date;
 
   @Column({ unique: true })
@@ -40,7 +40,7 @@ export class User {
   @Column({
     type: 'enum',
     enum: UserRoles,
-    default: UserRoles.Member,
+    default: null,
   })
   role: UserRoles;
 

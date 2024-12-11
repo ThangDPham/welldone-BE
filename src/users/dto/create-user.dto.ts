@@ -1,13 +1,11 @@
 import { UserStatus } from '../enums/user-status.enum';
 
 export class CreateUserDto {
-  firstname: string;
-
-  lastname: string;
+  name: string;
 
   email: string;
 
-  dateofbirth: Date;
+  dateofbirth?: Date;
 
   password: string;
 

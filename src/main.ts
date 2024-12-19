@@ -19,6 +19,7 @@ async function bootstrap() {
     .addBearerAuth()
     .addTag('auth')
     .addTag('users')
+    .addTag('groups')
     .setDescription('WellDone API Documentation')
     .setVersion('1')
     .build();

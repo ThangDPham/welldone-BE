@@ -9,6 +9,7 @@ export class GetGroupResponse extends PartialType(CreateGroupDto) {
   description?: string;
   createdAt: Date;
   updatedAt: Date;
+  role: string
   @IsArray()
   user: GetUserJoinedResponse[];
 }

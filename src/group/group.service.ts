@@ -105,7 +105,7 @@ export class GroupsService {
                 await this.joinGroupRepository.save(join_group_member);
             }
         }
-        await this.groupsRepository.save({id, updateGroupDto});
+        await this.groupsRepository.save(group);
     }
     async remove(id: number, user_id: number): Promise<void> {
         const group = await this.findOne(id);

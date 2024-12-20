@@ -103,6 +103,7 @@ export class GroupsService {
       });
       const getGroupResponsense = new GetGroupResponse();
       getGroupResponsense.id = groupInfo.id;
+      getGroupResponsense.role = group.role;
       getGroupResponsense.name = groupInfo.name;
       getGroupResponsense.description = groupInfo.description;
       getGroupResponsense.createdAt = groupInfo.createdAt;

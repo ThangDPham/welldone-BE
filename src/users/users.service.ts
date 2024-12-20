@@ -36,9 +36,6 @@ export class UsersService {
         'name',
         'dateofbirth',
         'email',
-        'group_id',
-        'joined_at',
-        'role',
         'updatedAt',
       ],
     });

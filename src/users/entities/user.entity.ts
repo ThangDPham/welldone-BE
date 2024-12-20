@@ -30,20 +30,6 @@ export class User {
   @Column()
   password: string;
 
-  @Column({ nullable: true })
-  //@ManyToOne()
-  group_id: number;
-
-  @Column({ nullable: true })
-  joined_at: Date;
-
-  @Column({
-    type: 'enum',
-    enum: UserRoles,
-    default: null,
-  })
-  role: UserRoles;
-
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

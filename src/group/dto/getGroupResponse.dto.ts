@@ -4,6 +4,7 @@ import { User } from "../../users/entities";
 import { IsArray } from "class-validator";
 
 export class GetGroupResponse extends PartialType(CreateGroupDto) {
+    id: number;
     name: string;
     description?: string;
     createdAt: Date;

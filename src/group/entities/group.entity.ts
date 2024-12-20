@@ -13,7 +13,7 @@ import {
   export class Group {
     @PrimaryGeneratedColumn()
     id: number; 
-    @Column({unique: true, nullable: true,length: 100})
+    @Column({nullable: true,length: 100})
     name: string;
 
     @CreateDateColumn({ name: 'created_at' })

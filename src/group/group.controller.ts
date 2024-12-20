@@ -40,6 +40,16 @@ import { CurrentUser } from 'src/auth/decorators';
     findOne(@Param('name') name: string) {
         return this.groupsService.findbyName(name);
     }
+
+    @Get(':id')  
+    @ApiOperation({ summary: 'Get a group by id' })
+    @ApiResponse({ status: 200, description: 'Return the group' })
+    @ApiResponse({ status: 404, description: 'Group not found' })
+    @ApiResponse({ status: 401, description: 'Unauthorized' })
+    findOnebyId(@Param('id') id: number) {
+        return this.groupsService.findOne(id);
+    }
+    
     @Get()
     @ApiOperation({ summary:'get all groups that user belongs to' })
     @ApiResponse({ status: 200, description: 'Return the groups' })

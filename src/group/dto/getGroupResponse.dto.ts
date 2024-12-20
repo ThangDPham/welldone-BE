@@ -1,6 +1,5 @@
 import { PartialType } from "@nestjs/mapped-types";
-import { CreateGroupDto } from "src/group/dto";
-import { User } from "../../users/entities";
+import { CreateGroupDto, GetUserJoinedResponse } from "src/group/dto";
 import { IsArray } from "class-validator";
 
 export class GetGroupResponse extends PartialType(CreateGroupDto) {
@@ -11,5 +10,5 @@ export class GetGroupResponse extends PartialType(CreateGroupDto) {
     updatedAt: Date;
     role: string;
     @IsArray()
-    user: User[];
+    user: GetUserJoinedResponse[];
 }

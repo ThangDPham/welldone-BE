@@ -4,7 +4,7 @@ import { In, Repository } from 'typeorm';
 // import { CreateUserDto, UpdateUserDto } from './dto';
 import { Group } from './entities';
 import { JoinGroup } from './entities/join_group.entity';
-import { CreateGroupDto, GetGroupResponse, UpdateGroupDto } from './dto';
+import { CreateGroupDto, GetGroupResponse, GetUserJoinedResponse, UpdateGroupDto } from './dto';
 import { UserRoles } from 'src/users/enums';
 import { User } from 'src/users/entities';
 import { UsersService } from 'src/users/users.service';
@@ -76,7 +76,7 @@ export class GroupsService {
             const userJoineds = await this.joinGroupRepository.find({where: {group_id: group.group_id}});
             for (let userJoined of userJoineds) {
                 const user = await this.usersService.findOne(userJoined.user_id);
-                getGroupResponsense.user.push(user);
+                getGroupResponsense.user.push(new GetUserJoinedResponse(user, userJoined.role));
             }
             
 

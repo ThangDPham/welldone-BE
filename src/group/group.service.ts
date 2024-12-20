@@ -64,9 +64,10 @@ export class GroupsService {
 
         var groups = [];
         for (let group of groupsJoined) {
-            const groupInfo =  await this.groupsRepository.findOne({where: {id: group.group_id}});
+            const groupInfo =  await this.groupsRepository.findOneBy({id: group.group_id});
             var getGroupResponsense = new GetGroupResponse();
-            getGroupResponsense.id = groupInfo.id;
+            getGroupResponsense.id = group.group_id;
+            getGroupResponsense.role = group.role;
             getGroupResponsense.name = groupInfo.name;
             getGroupResponsense.description = groupInfo.description;
             getGroupResponsense.createdAt = groupInfo.createdAt;

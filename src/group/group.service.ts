@@ -116,6 +116,7 @@ export class GroupsService {
         if (group.user_id_create!== user_id) {
             throw new NotFoundException('Not authorized to delete this group');
         }
+        await this.joinGroupRepository.delete({group_id: group.id});
         await this.groupsRepository.delete(id);
     }
 }

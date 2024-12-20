@@ -6,6 +6,8 @@ import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { GroupsModule } from './group/group.module';
+import { ProjectsModule } from './projects/projects.module';
+import { TasksModule } from './tasks/tasks.module';
 
 @Module({
   imports: [
@@ -25,9 +27,9 @@ import { GroupsModule } from './group/group.module';
         synchronize: true,
         logging: true,
         logger: 'advanced-console',
-        ssl: {
-          rejectUnauthorized: false,
-        },
+        // ssl: {
+        //   rejectUnauthorized: false,
+        // },
         retryAttempts: 5,
         retryDelay: 3000,
         autoLoadEntities: true,
@@ -43,6 +45,8 @@ import { GroupsModule } from './group/group.module';
     UsersModule,
     AuthModule,
     GroupsModule,
+    ProjectsModule,
+    TasksModule,
   ],
   controllers: [AppController],
   providers: [AppService],

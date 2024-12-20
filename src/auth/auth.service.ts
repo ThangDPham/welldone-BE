@@ -265,12 +265,17 @@ export class AuthService {
   async changePassword(userId: number, changePasswordDto: ChangePasswordDto) {
     const user = await this.usersService.findOne(userId);
 
-    if (!user || !(await bcrypt.compare(changePasswordDto.password, user.password))) {
+    if (
+      !user ||
+      !(await bcrypt.compare(changePasswordDto.password, user.password))
+    ) {
       throw new BadRequestException('Password is incorrect');
     }
-    const hashedNewPassword = await this.hashPassword(changePasswordDto.newPassword);
+    const hashedNewPassword = await this.hashPassword(
+      changePasswordDto.newPassword,
+    );
     await this.usersService.update(user.id, {
-      password:hashedNewPassword
+      password: hashedNewPassword,
     });
   }
 }

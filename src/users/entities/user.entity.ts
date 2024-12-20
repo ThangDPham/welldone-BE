@@ -21,7 +21,7 @@ export class User {
   // @Column({ length: 100 })
   // lastname: string;
 
-  @Column({nullable: true})
+  @Column({ nullable: true })
   dateofbirth: Date;
 
   @Column({ unique: true })

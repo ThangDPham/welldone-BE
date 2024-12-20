@@ -173,7 +173,10 @@ export class AuthController {
   @ApiUnauthorizedResponse({
     description: 'Not authenticated or invalid token',
   })
-  async updateProfile(@CurrentUser() user, @Body() updateProfile : UpdateProfile) {
+  async updateProfile(
+    @CurrentUser() user,
+    @Body() updateProfile: UpdateProfile,
+  ) {
     return await this.usersService.update(user.id, updateProfile);
   }
 
@@ -220,8 +223,10 @@ export class AuthController {
   @ApiUnauthorizedResponse({
     description: 'Not authenticated or invalid token',
   })
-  
-  async changePassword(@CurrentUser() user, @Body() changePasswordDto: ChangePasswordDto) {
+  async changePassword(
+    @CurrentUser() user,
+    @Body() changePasswordDto: ChangePasswordDto,
+  ) {
     return this.authService.changePassword(user.id, changePasswordDto);
   }
 }

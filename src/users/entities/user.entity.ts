@@ -21,7 +21,7 @@ export class User {
   // @Column({ length: 100 })
   // lastname: string;
 
-  @Column({nullable: true})
+  @Column({ nullable: true })
   dateofbirth: Date;
 
   @Column({ unique: true })
@@ -30,11 +30,11 @@ export class User {
   @Column()
   password: string;
 
-  @Column({nullable: true})
+  @Column({ nullable: true })
   //@ManyToOne()
   group_id: number;
 
-  @Column({nullable: true})
+  @Column({ nullable: true })
   joined_at: Date;
 
   @Column({

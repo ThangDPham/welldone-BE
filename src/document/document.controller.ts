@@ -63,14 +63,14 @@ export class DocumentsController {
     }))
     @ApiConsumes('multipart/form-data')
     upload(
-        @Req() res: Response,
+        @Req() req: Request,
         @UploadedFile() file,
         @CurrentUser() user
     ) {
         if (!file) {
             throw new Error('Invalid file');
         }
-        return this.documentService.create(res, file,user.id);
+        return this.documentService.create(req, file,user.id);
     }
 
   @Get(':id')

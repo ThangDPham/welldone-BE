@@ -7,6 +7,8 @@ import {
   UploadedFile,
   StreamableFile,
 } from '@nestjs/common';
+
+import { Request, Response} from 'express';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 // import { CreateUserDto, UpdateUserDto } from './dto';
@@ -30,9 +32,9 @@ export class DocumentService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
   ) {}
-  async create(@Req() req: any, @UploadedFile() file, user_id: number): Promise<DocumentFile> {
+  async create(@Req() req: Request, @UploadedFile() file, user_id: number): Promise<DocumentFile> {
     const documents = this.documentRepository.create();
-    const task = await this.taskRepository.findOne({where:{id:req.task_id}});
+    const task = await this.taskRepository.findOne({where:{id: parseInt(req.body.task_id, 10)}});
     documents.task = task;
     documents.task_id = task.id;
     const user = await this.userRepository.findOne({where:{id : user_id}});

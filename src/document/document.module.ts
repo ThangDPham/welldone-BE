@@ -9,8 +9,9 @@ import { Project } from 'src/projects/entities';
 import { DocumentsController } from './document.controller';
 import { DocumentService } from './document.service';
 import { DocumentFile } from './entities';
+import { Task } from 'src/tasks/entities';
 @Module({
-  imports: [TypeOrmModule.forFeature([DocumentFile])],
+  imports: [TypeOrmModule.forFeature([DocumentFile, User, Task])],
   controllers: [DocumentsController],
   providers: [DocumentService],
   exports: [DocumentService],

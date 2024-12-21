@@ -16,6 +16,7 @@ import {
   Header,
   StreamableFile,
 } from '@nestjs/common';
+import { Request, Response} from 'express';
 import {
   ApiTags,
   ApiOperation,
@@ -35,6 +36,7 @@ import { DocumentService } from './document.service';
 import { console } from 'inspector';
 import { createReadStream } from 'fs';
 import { join } from 'path';
+import { UploadFileRequest } from './dto';
 @ApiTags('documents')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
@@ -51,39 +53,28 @@ export class DocumentsController {
     @ApiInternalServerErrorResponse({description: 'Internal Server Error'})
     @UseInterceptors(FileInterceptor('file', {
         fileFilter: (req, file, callback) => {
-            if (!file.originalname.match(/\.(pdf)$/)) {
+            if (!file.originalname.match(/\.(pdf|docx|txt)$/)) {
                 return callback(new Error('Only.pdf files are allowed.'), false);
             }
             callback(null, true);
         },
         limits: { fileSize: 5 * 1024 * 1024 }, // 2MB
         dest: './uploads/',
-        
-        
-
-        
     }))
     @ApiConsumes('multipart/form-data')
     upload(
-        @Req() req: any,
-        @UploadedFile(
-            
-        ) file
+        @Req() res: Response,
+        @UploadedFile() file,
+        @CurrentUser() user
     ) {
-        if (!file || req.fileValdationError) {
+        if (!file) {
             throw new Error('Invalid file');
         }
-        return file;
-        // return this.documentService.create(req,file);
+        return this.documentService.create(res, file,user.id);
     }
 
-  @Get()
-  @Header('Content-Type', 'application/pdf')
-  @Header('Content-Disposition', 'attachment; filename="package.pdf"')
-  getFileUsingStaticValues(): StreamableFile {
-    const file = createReadStream(
-      join('./uploads', '846d509a31b1f1832931a1cdb0960010'),
-    );
-    return new StreamableFile(file);
-  }
+  @Get(':id')
+    getFileUsingStaticValues( @Param('id') id : number) {
+        return this.documentService.download(id);
+    }
 }

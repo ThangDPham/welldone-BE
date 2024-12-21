@@ -9,7 +9,12 @@ import { Repository } from 'typeorm';
 // import { CreateUserDto, UpdateUserDto } from './dto';
 import { Group } from './entities';
 import { JoinGroup } from './entities/join_group.entity';
-import { CreateGroupDto, GetGroupResponse, GetUserJoinedResponse, UpdateGroupDto } from './dto';
+import {
+  CreateGroupDto,
+  GetGroupResponse,
+  GetUserJoinedResponse,
+  UpdateGroupDto,
+} from './dto';
 import { UserRoles } from 'src/users/enums';
 import { Project } from 'src/projects/entities/project.entity';
 import { UsersService } from 'src/users/users.service';
@@ -37,29 +42,51 @@ export class GroupsService {
 
     const doneGroup = await this.groupsRepository.save(group);
 
-    const join_group = this.joinGroupRepository.create();
-    join_group.user_id = user_id_create;
-    join_group.group_id = group.id;
-    join_group.role = UserRoles.Leader;
-    await this.joinGroupRepository.save(join_group);
-        const groupsJoined = await this.joinGroupRepository.find({where: {group_id: group.id}});
-        var groups = [];
-        for (let group of groupsJoined) {
-            const groupInfo =  await this.groupsRepository.findOneBy({id: group.group_id});
-            var getGroupResponsense = new GetGroupResponse();
-            getGroupResponsense.id = group.group_id;
-            getGroupResponsense.role = group.role;
-            getGroupResponsense.name = groupInfo.name;
-            getGroupResponsense.description = groupInfo.description;
-            getGroupResponsense.createdAt = groupInfo.createdAt;
-            getGroupResponsense.updatedAt = groupInfo.updatedAt;
-            getGroupResponsense.user = []; // Get user info from join_group table
-            const userJoineds = await this.joinGroupRepository.find({where: {group_id: group.group_id}});
-            for (let userJoined of userJoineds) {
-                const user = await this.usersService.findOne(userJoined.user_id);
-                getGroupResponsense.user.push(new GetUserJoinedResponse(user, userJoined.role));
-            }
-        }   
+    const leaderJoinGroup = this.joinGroupRepository.create({
+      user_id: user_id_create,
+      group_id: doneGroup.id,
+      role: UserRoles.Leader,
+    });
+    await this.joinGroupRepository.save(leaderJoinGroup);
+
+    if (createGroupDto.list_user_members?.length > 0) {
+      const memberJoinGroups = createGroupDto.list_user_members.map(
+        (memberId) => ({
+          user_id: memberId,
+          group_id: doneGroup.id,
+          role: UserRoles.Member,
+          join_at: new Date(),
+        }),
+      );
+
+      await this.joinGroupRepository.insert(memberJoinGroups);
+    }
+
+    // const groupsJoined = await this.joinGroupRepository.find({
+    //   where: { group_id: group.id },
+    // });
+    // for (const group of groupsJoined) {
+    //   const groupInfo = await this.groupsRepository.findOneBy({
+    //     id: group.group_id,
+    //   });
+    //   const getGroupResponsense = new GetGroupResponse();
+    //   getGroupResponsense.id = group.group_id;
+    //   getGroupResponsense.role = group.role;
+    //   getGroupResponsense.name = groupInfo.name;
+    //   getGroupResponsense.description = groupInfo.description;
+    //   getGroupResponsense.createdAt = groupInfo.createdAt;
+    //   getGroupResponsense.updatedAt = groupInfo.updatedAt;
+    //   getGroupResponsense.user = [];
+    //   const userJoineds = await this.joinGroupRepository.find({
+    //     where: { group_id: group.group_id },
+    //   });
+    //   for (const userJoined of userJoineds) {
+    //     const user = await this.usersService.findOne(userJoined.user_id);
+    //     getGroupResponsense.user.push(
+    //       new GetUserJoinedResponse(user, userJoined.role),
+    //     );
+    //   }
+    // }
 
     return doneGroup;
   }
@@ -114,7 +141,9 @@ export class GroupsService {
       });
       for (const userJoined of userJoineds) {
         const user = await this.usersService.findOne(userJoined.user_id);
-        getGroupResponsense.user.push(new GetUserJoinedResponse(user, userJoined.role));
+        getGroupResponsense.user.push(
+          new GetUserJoinedResponse(user, userJoined.role),
+        );
       }
 
       groups.push(getGroupResponsense);
@@ -180,7 +209,7 @@ export class GroupsService {
 
   async remove(id: number, user_id: number): Promise<void> {
     const group = await this.findOne(id);
-    await this.joinGroupRepository.delete({group_id: group.id})
+    await this.joinGroupRepository.delete({ group_id: group.id });
     if (!group) {
       throw new NotFoundException('Group not found');
     }

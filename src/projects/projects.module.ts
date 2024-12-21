@@ -7,7 +7,10 @@ import { GroupsModule } from '../group/group.module';
 import { Group, JoinGroup } from 'src/group/entities';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Project, JoinGroup, Group]), GroupsModule],
+  imports: [
+    TypeOrmModule.forFeature([Project, JoinGroup, Group]),
+    GroupsModule,
+  ],
   controllers: [ProjectsController],
   providers: [ProjectsService],
   exports: [ProjectsService],

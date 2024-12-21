@@ -10,9 +10,7 @@ import { DocumentsController } from './document.controller';
 import { DocumentService } from './document.service';
 import { DocumentFile } from './entities';
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([DocumentFile]),
-  ],
+  imports: [TypeOrmModule.forFeature([DocumentFile])],
   controllers: [DocumentsController],
   providers: [DocumentService],
   exports: [DocumentService],

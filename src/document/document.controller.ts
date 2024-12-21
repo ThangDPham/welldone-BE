@@ -40,48 +40,41 @@ import { join } from 'path';
 @UseGuards(JwtAuthGuard)
 @Controller('documents')
 export class DocumentsController {
-
-    
-    constructor(private readonly documentService: DocumentService) {}
-    @Post('upload')
-    @ApiOperation({ summary: 'Create a new file' })
-    @ApiNotFoundResponse({description: 'not found'})
-    @ApiForbiddenResponse({description: 'unauthorized'})
-    @ApiUnprocessableEntityResponse({description: 'bad request'})
-    @ApiInternalServerErrorResponse({description: 'Internal Server Error'})
-    @UseInterceptors(FileInterceptor('file', {
-        fileFilter: (req, file, callback) => {
-            if (!file.originalname.match(/\.(pdf)$/)) {
-                return callback(new Error('Only.pdf files are allowed.'), false);
-            }
-            callback(null, true);
-        },
-        limits: { fileSize: 5 * 1024 * 1024 }, // 2MB
-        dest: './uploads/',
-        
-        
-
-        
-    }))
-    @ApiConsumes('multipart/form-data')
-    upload(
-        @Req() req: any,
-        @UploadedFile(
-            
-        ) file
-    ) {
-        if (!file || req.fileValdationError) {
-            throw new Error('Invalid file');
+  constructor(private readonly documentService: DocumentService) {}
+  @Post('upload')
+  @ApiOperation({ summary: 'Create a new file' })
+  @ApiNotFoundResponse({ description: 'not found' })
+  @ApiForbiddenResponse({ description: 'unauthorized' })
+  @ApiUnprocessableEntityResponse({ description: 'bad request' })
+  @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
+  @UseInterceptors(
+    FileInterceptor('file', {
+      fileFilter: (req, file, callback) => {
+        if (!file.originalname.match(/\.(pdf)$/)) {
+          return callback(new Error('Only.pdf files are allowed.'), false);
         }
-        return file;
-        // return this.documentService.create(req,file);
+        callback(null, true);
+      },
+      limits: { fileSize: 5 * 1024 * 1024 }, // 2MB
+      dest: './uploads/',
+    }),
+  )
+  @ApiConsumes('multipart/form-data')
+  upload(@Req() req: any, @UploadedFile() file) {
+    if (!file || req.fileValdationError) {
+      throw new Error('Invalid file');
     }
+    return file;
+    // return this.documentService.create(req,file);
+  }
 
-    @Get()
+  @Get()
   @Header('Content-Type', 'application/pdf')
   @Header('Content-Disposition', 'attachment; filename="package.pdf"')
   getFileUsingStaticValues(): StreamableFile {
-    const file = createReadStream(join('./uploads', '846d509a31b1f1832931a1cdb0960010'));
+    const file = createReadStream(
+      join('./uploads', '846d509a31b1f1832931a1cdb0960010'),
+    );
     return new StreamableFile(file);
-  }  
+  }
 }

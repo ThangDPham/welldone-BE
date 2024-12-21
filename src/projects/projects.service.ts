@@ -36,7 +36,7 @@ export class ProjectsService {
     });
     return !!leaderMembership;
   }
-  
+
   async create(
     createProjectDto: CreateProjectDto,
     userId: number,

@@ -1,7 +1,7 @@
-import { PartialType } from "@nestjs/mapped-types";
-import { CreateGroupDto, GetUserJoinedResponse } from "src/group/dto";
+import { PartialType } from '@nestjs/mapped-types';
+import { CreateGroupDto, GetUserJoinedResponse } from 'src/group/dto';
 
-import { IsArray } from "class-validator";
+import { IsArray } from 'class-validator';
 
 export class GetGroupResponse extends PartialType(CreateGroupDto) {
   id: number;

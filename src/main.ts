@@ -20,6 +20,7 @@ async function bootstrap() {
     .addTag('auth')
     .addTag('users')
     .addTag('groups')
+    .addTag('documents')
     .setDescription('WellDone API Documentation')
     .setVersion('1')
     .build();

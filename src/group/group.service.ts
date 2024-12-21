@@ -180,6 +180,7 @@ export class GroupsService {
 
   async remove(id: number, user_id: number): Promise<void> {
     const group = await this.findOne(id);
+    await this.joinGroupRepository.delete({group_id: group.id})
     if (!group) {
       throw new NotFoundException('Group not found');
     }

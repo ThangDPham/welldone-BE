@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { GroupsModule } from './group/group.module';
 import { ProjectsModule } from './projects/projects.module';
 import { TasksModule } from './tasks/tasks.module';
+import { DocumentModule } from './document/document.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { TasksModule } from './tasks/tasks.module';
     GroupsModule,
     ProjectsModule,
     TasksModule,
+    DocumentModule
   ],
   controllers: [AppController],
   providers: [AppService],

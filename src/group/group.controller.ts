@@ -74,9 +74,9 @@ export class GroupsController {
     return this.groupsService.update(+id, updateUserDto, user.id);
   }
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete a user' })
-  @ApiResponse({ status: 200, description: 'User successfully deleted' })
-  @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiOperation({ summary: 'Delete a group' })
+  @ApiResponse({ status: 200, description: 'group successfully deleted' })
+  @ApiResponse({ status: 404, description: 'group not found' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   remove(@Param('id') id: string, @CurrentUser() user) {
     return this.groupsService.remove(+id, user.id);

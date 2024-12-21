@@ -19,6 +19,7 @@ import { UserRoles } from 'src/users/enums';
 import { Project } from 'src/projects/entities/project.entity';
 import { UsersService } from 'src/users/users.service';
 import { GroupMember } from './types/group-member.type';
+import { UserResponseDto } from 'src/users/dto/user-response.dto';
 
 @Injectable()
 export class GroupsService {
@@ -31,10 +32,35 @@ export class GroupsService {
     private projectsRepository: Repository<Project>,
     private usersService: UsersService,
   ) {}
+
+  private async getGroupResponse(
+    groupId: number,
+    userId: number,
+  ): Promise<GetGroupResponse> {
+    const group = await this.groupsRepository.findOne({
+      where: { id: groupId },
+    });
+
+    const userRole = await this.joinGroupRepository.findOne({
+      where: { group_id: groupId, user_id: userId },
+    });
+
+    const response = new GetGroupResponse();
+    response.id = group.id;
+    response.name = group.name;
+    response.description = group.description;
+    response.createdAt = group.createdAt;
+    response.updatedAt = group.updatedAt;
+    response.role = userRole.role;
+    response.user = await this.getGroupMembers(groupId);
+
+    return response;
+  }
+
   async create(
     createGroupDto: CreateGroupDto,
     user_id_create: number,
-  ): Promise<Group> {
+  ): Promise<GetGroupResponse> {
     const group = this.groupsRepository.create({
       ...createGroupDto,
       user_id_create,
@@ -62,33 +88,7 @@ export class GroupsService {
       await this.joinGroupRepository.insert(memberJoinGroups);
     }
 
-    // const groupsJoined = await this.joinGroupRepository.find({
-    //   where: { group_id: group.id },
-    // });
-    // for (const group of groupsJoined) {
-    //   const groupInfo = await this.groupsRepository.findOneBy({
-    //     id: group.group_id,
-    //   });
-    //   const getGroupResponsense = new GetGroupResponse();
-    //   getGroupResponsense.id = group.group_id;
-    //   getGroupResponsense.role = group.role;
-    //   getGroupResponsense.name = groupInfo.name;
-    //   getGroupResponsense.description = groupInfo.description;
-    //   getGroupResponsense.createdAt = groupInfo.createdAt;
-    //   getGroupResponsense.updatedAt = groupInfo.updatedAt;
-    //   getGroupResponsense.user = [];
-    //   const userJoineds = await this.joinGroupRepository.find({
-    //     where: { group_id: group.group_id },
-    //   });
-    //   for (const userJoined of userJoineds) {
-    //     const user = await this.usersService.findOne(userJoined.user_id);
-    //     getGroupResponsense.user.push(
-    //       new GetUserJoinedResponse(user, userJoined.role),
-    //     );
-    //   }
-    // }
-
-    return doneGroup;
+    return this.getGroupResponse(doneGroup.id, user_id_create);
   }
 
   async findAllByProjectId(projectId: number): Promise<Group[]> {
@@ -135,21 +135,25 @@ export class GroupsService {
       getGroupResponsense.description = groupInfo.description;
       getGroupResponsense.createdAt = groupInfo.createdAt;
       getGroupResponsense.updatedAt = groupInfo.updatedAt;
-      getGroupResponsense.user = []; // Get user info from join_group table
+      getGroupResponsense.user = [];
+
       const userJoineds = await this.joinGroupRepository.find({
         where: { group_id: group.group_id },
       });
+
       for (const userJoined of userJoineds) {
-        const user = await this.usersService.findOne(userJoined.user_id);
-        getGroupResponsense.user.push(
-          new GetUserJoinedResponse(user, userJoined.role),
+        const userResponse = await this.usersService.getUserWithRole(
+          userJoined.user_id,
+          userJoined.role as UserRoles,
         );
+        getGroupResponsense.user.push(userResponse);
       }
 
       groups.push(getGroupResponsense);
     }
     return groups;
   }
+
   async update(
     id: number,
     updateGroupDto: UpdateGroupDto,
@@ -219,7 +223,7 @@ export class GroupsService {
     await this.groupsRepository.delete(id);
   }
 
-  async getGroupMembers(groupId: number): Promise<GroupMember[]> {
+  async getGroupMembers(groupId: number): Promise<UserResponseDto[]> {
     const joinGroupMembers = await this.joinGroupRepository.find({
       where: { group_id: groupId },
     });
@@ -228,17 +232,16 @@ export class GroupsService {
       return [];
     }
 
-    const userIds = joinGroupMembers.map((member) => member.user_id);
-    const users = await this.usersService.findByIds(userIds);
+    const members: UserResponseDto[] = [];
+    for (const member of joinGroupMembers) {
+      const userResponse = await this.usersService.getUserWithRole(
+        member.user_id,
+        member.role as UserRoles,
+      );
+      members.push(userResponse);
+    }
 
-    return users.map((user) => {
-      const joinGroup = joinGroupMembers.find((jg) => jg.user_id === user.id);
-      const groupMember: GroupMember = {
-        ...user,
-        role: joinGroup.role as UserRoles,
-      };
-      return groupMember;
-    });
+    return members;
   }
 
   async removeMember(

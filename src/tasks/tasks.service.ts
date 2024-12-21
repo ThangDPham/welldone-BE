@@ -14,6 +14,7 @@ import { JoinGroup } from '../group/entities/join_group.entity';
 import { Project } from '../projects/entities/project.entity';
 import { In } from 'typeorm';
 import { UserRoles } from '../users/enums/user-role.enum';
+import { UserResponseDto } from '../users/dto/user-response.dto';
 
 @Injectable()
 export class TasksService {
@@ -98,7 +99,8 @@ export class TasksService {
       assignees,
     });
 
-    return await this.taskRepository.save(task);
+    const savedTask = await this.taskRepository.save(task);
+    return this.enrichTaskWithUserRoles(savedTask, createTaskDto.projectId);
   }
 
   async findAll(query: QueryTasksDto, userId: number): Promise<Task[]> {
@@ -108,7 +110,6 @@ export class TasksService {
       .leftJoinAndSelect('task.project', 'project')
       .leftJoinAndSelect('task.createdBy', 'createdBy');
 
-    // Get all groups the user is a member of
     const userMemberships = await this.joinGroupRepository.find({
       where: { user_id: userId },
     });
@@ -142,7 +143,42 @@ export class TasksService {
       );
     }
 
-    return await queryBuilder.getMany();
+    const tasks = await queryBuilder.getMany();
+    return Promise.all(
+      tasks.map((task) => this.enrichTaskWithUserRoles(task, task.projectId)),
+    );
+  }
+
+  private async enrichTaskWithUserRoles(
+    task: Task,
+    projectId: number,
+  ): Promise<Task> {
+    if (task.assignees) {
+      const assigneesWithRoles: UserResponseDto[] = [];
+      for (const assignee of task.assignees) {
+        const membership = await this.joinGroupRepository.findOne({
+          where: {
+            user_id: assignee.id,
+            group_id: In(
+              (
+                await this.projectsRepository.findOne({
+                  where: { id: projectId },
+                  relations: ['groups'],
+                })
+              ).groups.map((g) => g.id),
+            ),
+          },
+        });
+
+        const userResponse = await this.usersService.getUserWithRole(
+          assignee.id,
+          (membership?.role as UserRoles) || UserRoles.Member,
+        );
+        assigneesWithRoles.push(userResponse);
+      }
+      task.assignees = assigneesWithRoles;
+    }
+    return task;
   }
 
   async findOne(id: number, userId: number): Promise<Task> {
@@ -156,7 +192,7 @@ export class TasksService {
     }
 
     await this.validateProjectAccess(task.projectId, userId);
-    return task;
+    return this.enrichTaskWithUserRoles(task, task.projectId);
   }
 
   async update(

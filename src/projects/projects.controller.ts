@@ -20,7 +20,7 @@ import { ProjectsService } from './projects.service';
 import { CreateProjectDto, UpdateProjectDto, QueryProjectsDto } from './dto';
 import { JwtAuthGuard } from '../auth/guards';
 import { CurrentUser } from '../auth/decorators';
-import { ProjectMember } from './types/project-member.type';
+import { UserResponseDto } from '../users/dto/user-response.dto';
 
 @ApiTags('projects')
 @ApiBearerAuth()
@@ -139,7 +139,7 @@ export class ProjectsController {
   async getProjectMembers(
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser() user,
-  ): Promise<ProjectMember[]> {
+  ): Promise<UserResponseDto[]> {
     return this.projectsService.getProjectMembers(id, user.id);
   }
 

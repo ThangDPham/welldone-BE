@@ -1,12 +1,16 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { User } from 'src/users/entities';
-import { CreateGroupDto } from './createGroup.dto';
+import { UserResponseDto } from '../../users/dto';
+import { User } from '../../users/entities';
+import { UserRoles } from '../../users/enums';
 
-export class GetUserJoinedResponse {
-  role: string;
-  user: User;
-  constructor(user: User, role: string) {
-    this.user = user;
+export class GetUserJoinedResponse extends UserResponseDto {
+  constructor(user: User, role: UserRoles) {
+    super();
+    this.id = user.id;
+    this.name = user.name;
+    this.email = user.email;
+    this.dateofbirth = user.dateofbirth;
+    this.createdAt = user.createdAt;
+    this.updatedAt = user.updatedAt;
     this.role = role;
   }
 }

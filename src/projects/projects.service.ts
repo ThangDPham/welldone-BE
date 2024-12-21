@@ -13,6 +13,7 @@ import { CreateProjectDto, UpdateProjectDto, QueryProjectsDto } from './dto';
 import { UserRoles } from '../users/enums/user-role.enum';
 import { UsersService } from '../users/users.service';
 import { ProjectMember } from './types/project-member.type';
+import { UserResponseDto } from '../users/dto/user-response.dto';
 
 @Injectable()
 export class ProjectsService {
@@ -106,7 +107,10 @@ export class ProjectsService {
     return await queryBuilder.getMany();
   }
 
-  async findOne(id: number, userId: number): Promise<Project> {
+  async findOne(
+    id: number,
+    userId: number,
+  ): Promise<Project> {
     const project = await this.projectsRepository.findOne({
       where: { id },
       relations: ['groups'],
@@ -127,6 +131,8 @@ export class ProjectsService {
     if (!membership) {
       throw new ForbiddenException('You do not have access to this project');
     }
+
+    project.members = await this.getProjectMembers(id, userId);
 
     return project;
   }
@@ -229,30 +235,40 @@ export class ProjectsService {
   }
 
   async getProjectMembers(
-    projectId: number,
+    id: number,
     userId: number,
-  ): Promise<ProjectMember[]> {
-    const project = await this.findOne(projectId, userId);
+  ): Promise<UserResponseDto[]> {
+    const project = await this.findOne(id, userId);
+
     const groupIds = project.groups.map((group) => group.id);
 
     const memberships = await this.joinGroupRepository.find({
       where: { group_id: In(groupIds) },
     });
 
-    if (memberships.length === 0) {
-      return [];
+    const userRoleMap = new Map<number, UserRoles>();
+
+    memberships.forEach((membership) => {
+      const currentRole = userRoleMap.get(membership.user_id);
+      if (
+        !currentRole ||
+        (membership.role === UserRoles.Leader &&
+          currentRole === UserRoles.Member)
+      ) {
+        userRoleMap.set(membership.user_id, membership.role as UserRoles);
+      }
+    });
+
+    const members: UserResponseDto[] = [];
+    for (const [userId, role] of userRoleMap.entries()) {
+      const userResponse = await this.usersService.getUserWithRole(
+        userId,
+        role,
+      );
+      members.push(userResponse);
     }
 
-    const userIds = [...new Set(memberships.map((m) => m.user_id))];
-    const users = await this.usersService.findByIds(userIds);
-
-    return users.map((user) => {
-      const membership = memberships.find((m) => m.user_id === user.id);
-      return {
-        ...user,
-        role: membership.role as UserRoles,
-      };
-    });
+    return members;
   }
 
   async getProjectGroups(projectId: number, userId: number): Promise<Group[]> {

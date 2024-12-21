@@ -1,8 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
-import { CreateUserDto, UpdateUserDto } from './dto';
+import { CreateUserDto, UpdateUserDto, UserResponseDto } from './dto';
 import { User } from './entities';
+import { UserRoles } from './enums/user-role.enum';
 
 @Injectable()
 export class UsersService {
@@ -85,5 +86,30 @@ export class UsersService {
       verificationCode,
       verificationCodeExpiresAt: expiresAt,
     });
+  }
+
+  private mapToUserResponse(user: User, role?: UserRoles): UserResponseDto {
+    const response = new UserResponseDto();
+    response.id = user.id;
+    response.name = user.name;
+    response.email = user.email;
+    response.dateofbirth = user.dateofbirth;
+    response.createdAt = user.createdAt;
+    response.updatedAt = user.updatedAt;
+    if (role) {
+      response.role = role;
+    }
+    return response;
+  }
+
+  async getUserWithRole(
+    userId: number,
+    role: UserRoles,
+  ): Promise<UserResponseDto> {
+    const user = await this.findById(userId);
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+    return this.mapToUserResponse(user, role);
   }
 }

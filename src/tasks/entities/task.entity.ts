@@ -12,6 +12,7 @@ import {
 import { TaskPriority, TaskStatus } from '../enums';
 import { Project } from '../../projects/entities/project.entity';
 import { User } from '../../users/entities/user.entity';
+import { UserResponseDto } from '../../users/dto/user-response.dto';
 
 @Entity('tasks')
 export class Task {
@@ -60,7 +61,7 @@ export class Task {
     joinColumn: { name: 'taskId', referencedColumnName: 'id' },
     inverseJoinColumn: { name: 'userId', referencedColumnName: 'id' },
   })
-  assignees: User[];
+  assignees: UserResponseDto[];
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'createdById' })

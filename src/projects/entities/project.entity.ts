@@ -4,11 +4,11 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
-  ManyToOne,
   OneToMany,
 } from 'typeorm';
 import { ProjectStatus } from '../enums/project-status.enum';
 import { Group } from '../../group/entities/group.entity';
+import { UserResponseDto } from '../../users/dto/user-response.dto';
 
 @Entity('projects')
 export class Project {
@@ -42,4 +42,6 @@ export class Project {
 
   @OneToMany(() => Group, (group) => group.project)
   groups: Group[];
+
+  members?: UserResponseDto[];
 }

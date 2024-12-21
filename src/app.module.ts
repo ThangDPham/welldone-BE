@@ -48,7 +48,7 @@ import { DocumentModule } from './document/document.module';
     GroupsModule,
     ProjectsModule,
     TasksModule,
-    DocumentModule
+    DocumentModule,
   ],
   controllers: [AppController],
   providers: [AppService],

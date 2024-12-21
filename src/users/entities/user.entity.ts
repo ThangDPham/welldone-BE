@@ -4,11 +4,8 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToMany,
-  ManyToOne,
 } from 'typeorm';
 import { UserStatus } from '../enums/user-status.enum';
-import { UserRoles } from '../enums';
 
 @Entity('users')
 export class User {

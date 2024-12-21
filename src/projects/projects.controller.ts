@@ -20,6 +20,7 @@ import { ProjectsService } from './projects.service';
 import { CreateProjectDto, UpdateProjectDto, QueryProjectsDto } from './dto';
 import { JwtAuthGuard } from '../auth/guards';
 import { CurrentUser } from '../auth/decorators';
+import { UserResponseDto } from '../users/dto/user-response.dto';
 
 @ApiTags('projects')
 @ApiBearerAuth()
@@ -128,13 +129,17 @@ export class ProjectsController {
   }
 
   @Get(':id/members')
-  @ApiOperation({ summary: 'Get all project members' })
-  @ApiResponse({ status: 200, description: 'Returns list of project members' })
+  @ApiOperation({ summary: 'Get all project members with their roles' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns list of project members with their roles',
+    isArray: true,
+  })
   @ApiResponse({ status: 404, description: 'Project not found' })
   async getProjectMembers(
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser() user,
-  ) {
+  ): Promise<UserResponseDto[]> {
     return this.projectsService.getProjectMembers(id, user.id);
   }
 

@@ -35,6 +35,9 @@ export class DocumentService {
   async create(@Req() req: Request, @UploadedFile() file, user_id: number): Promise<DocumentFile> {
     const documents = this.documentRepository.create();
     const task = await this.taskRepository.findOne({where:{id: parseInt(req.body.task_id, 10)}});
+    if (!task) {
+      throw new NotFoundException('Task not found');
+    }
     documents.task = task;
     documents.task_id = task.id;
     const user = await this.userRepository.findOne({where:{id : user_id}});

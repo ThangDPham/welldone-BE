@@ -132,8 +132,6 @@ export class ProjectsService {
       throw new ForbiddenException('You do not have access to this project');
     }
 
-    project.members = await this.getProjectMembers(id, userId);
-
     return project;
   }
 

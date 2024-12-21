@@ -11,6 +11,8 @@ import { Group } from '../group/entities/group.entity';
 import { JoinGroup } from '../group/entities/join_group.entity';
 import { CreateProjectDto, UpdateProjectDto, QueryProjectsDto } from './dto';
 import { UserRoles } from '../users/enums/user-role.enum';
+import { UsersService } from '../users/users.service';
+import { ProjectMember } from './types/project-member.type';
 
 @Injectable()
 export class ProjectsService {
@@ -21,6 +23,7 @@ export class ProjectsService {
     private joinGroupRepository: Repository<JoinGroup>,
     @InjectRepository(Group)
     private groupRepository: Repository<Group>,
+    private usersService: UsersService,
   ) {}
 
   private async validateUserIsLeader(
@@ -225,7 +228,10 @@ export class ProjectsService {
     return this.findOne(projectId, userId);
   }
 
-  async getProjectMembers(projectId: number, userId: number): Promise<any[]> {
+  async getProjectMembers(
+    projectId: number,
+    userId: number,
+  ): Promise<ProjectMember[]> {
     const project = await this.findOne(projectId, userId);
     const groupIds = project.groups.map((group) => group.id);
 
@@ -233,11 +239,20 @@ export class ProjectsService {
       where: { group_id: In(groupIds) },
     });
 
-    // Get unique user IDs
-    const userIds = [...new Set(memberships.map((m) => m.user_id))];
+    if (memberships.length === 0) {
+      return [];
+    }
 
-    // You might want to fetch user details from UserService here
-    return userIds;
+    const userIds = [...new Set(memberships.map((m) => m.user_id))];
+    const users = await this.usersService.findByIds(userIds);
+
+    return users.map((user) => {
+      const membership = memberships.find((m) => m.user_id === user.id);
+      return {
+        ...user,
+        role: membership.role as UserRoles,
+      };
+    });
   }
 
   async getProjectGroups(projectId: number, userId: number): Promise<Group[]> {

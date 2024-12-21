@@ -59,9 +59,6 @@ export class DocumentsController {
         limits: { fileSize: 5 * 1024 * 1024 }, // 2MB
         dest: './uploads/',
         
-        
-
-        
     }))
     @ApiConsumes('multipart/form-data')
     upload(
@@ -78,10 +75,10 @@ export class DocumentsController {
     }
 
     @Get()
-  @Header('Content-Type', 'application/pdf')
-  @Header('Content-Disposition', 'attachment; filename="package.pdf"')
-  getFileUsingStaticValues(): StreamableFile {
+    @Header('Content-Type', 'application/pdf')
+    @Header('Content-Disposition', 'attachment; filename="package.pdf"')
+    getFileUsingStaticValues(): StreamableFile {
     const file = createReadStream(join('./uploads', '846d509a31b1f1832931a1cdb0960010'));
-    return new StreamableFile(file);
-  }  
+        return new StreamableFile(file);
+    }  
 }

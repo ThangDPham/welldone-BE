@@ -98,10 +98,10 @@ export class GroupsService {
     });
   }
 
-  async findOne(id: number): Promise<Group> {
+  async findOnebyId(id: number): Promise<Group> {
     const group = await this.groupsRepository.findOne({
       where: { id },
-      relations: ['project'],
+      // relations: ['project'],
     });
     if (!group) {
       throw new NotFoundException('Group not found');
@@ -159,7 +159,7 @@ export class GroupsService {
     updateGroupDto: UpdateGroupDto,
     user_id: number,
   ): Promise<Group> {
-    const group = await this.findOne(id);
+    const group = await this.findOnebyId(id);
 
     if (!group) {
       throw new NotFoundException('Group not found');
@@ -182,7 +182,7 @@ export class GroupsService {
       await this.addNewGroupMembers(group.id, list_user_members);
     }
 
-    return this.findOne(id);
+    return this.findOnebyId(id);
   }
 
   private async addNewGroupMembers(
@@ -212,7 +212,7 @@ export class GroupsService {
   }
 
   async remove(id: number, user_id: number): Promise<void> {
-    const group = await this.findOne(id);
+    const group = await this.findOnebyId(id);
     await this.joinGroupRepository.delete({ group_id: group.id });
     if (!group) {
       throw new NotFoundException('Group not found');
@@ -249,7 +249,7 @@ export class GroupsService {
     userIdToRemove: number,
     currentUserId: number,
   ): Promise<void> {
-    const group = await this.findOne(groupId);
+    const group = await this.findOnebyId(groupId);
     if (!group) {
       throw new NotFoundException('Group not found');
     }

@@ -90,6 +90,9 @@ export class ProjectsService {
     const userGroups = await this.joinGroupRepository.find({
       where: { user_id: userId },
     });
+    if (!userGroups.length) {
+      return [];
+    }
     const groupIds = userGroups.map((group) => group.group_id);
 
     const queryBuilder = this.projectsRepository

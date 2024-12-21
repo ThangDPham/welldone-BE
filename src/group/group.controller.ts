@@ -47,7 +47,7 @@ export class GroupsController {
   @ApiResponse({ status: 404, description: 'Group not found' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   findOnebyId(@Param('id') id: number) {
-    return this.groupsService.findOne(id);
+    return this.groupsService.findOnebyId(id);
   }
 
   @Get()

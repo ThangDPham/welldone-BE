@@ -32,7 +32,6 @@ export class DocumentService {
   ) {}
   async create(@Req() req: any, @UploadedFile() file, user_id: number): Promise<DocumentFile> {
     const documents = this.documentRepository.create();
-    console.log(req.task_id,"   heheehe");
     const task = await this.taskRepository.findOne({where:{id:req.task_id}});
     documents.task = task;
     documents.task_id = task.id;

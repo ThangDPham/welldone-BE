@@ -63,4 +63,11 @@ export class CreateTaskDto {
   @IsArray()
   @IsNumber({}, { each: true })
   assigneeIds: number[];
+
+  @ApiProperty({
+    description: 'Project ID',
+    type: Number,
+  })
+  @IsNumber()
+  projectId: number;
 }

@@ -10,6 +10,7 @@ import { ProjectStatus } from '../enums/project-status.enum';
 import { Group } from '../../group/entities/group.entity';
 import { UserResponseDto } from '../../users/dto/user-response.dto';
 import { GroupInProjectDto } from '../dto/group-in-project.dto';
+import { Task } from '../../tasks/entities/task.entity';
 
 @Entity('projects')
 export class Project {
@@ -47,4 +48,7 @@ export class Project {
   members?: UserResponseDto[];
 
   userGroups?: GroupInProjectDto[];
+
+  @OneToMany(() => Task, (task) => task.project)
+  tasks: Task[];
 }

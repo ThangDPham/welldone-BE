@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsEnum, IsString } from 'class-validator';
+import { IsOptional, IsEnum, IsString, IsNumber } from 'class-validator';
 import { TaskPriority, TaskStatus } from '../enums';
+import { Type } from 'class-transformer';
 
 export class QueryTasksDto {
   @ApiProperty({
@@ -28,4 +29,13 @@ export class QueryTasksDto {
   @IsOptional()
   @IsString()
   search?: string;
+
+  @ApiProperty({
+    description: 'Filter by project ID',
+    required: false,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  projectId?: number;
 }

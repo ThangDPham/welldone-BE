@@ -12,6 +12,7 @@ import {
 import { TaskPriority, TaskStatus } from '../enums';
 import { User } from '../../users/entities/user.entity';
 import { UserResponseDto } from '../../users/dto/user-response.dto';
+import { Project } from '../../projects/entities/project.entity';
 
 @Entity('tasks')
 export class Task {
@@ -61,4 +62,13 @@ export class Task {
 
   @Column()
   createdById: number;
+
+  @ManyToOne(() => Project, (project) => project.tasks, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'projectId' })
+  project: Project;
+
+  @Column()
+  projectId: number;
 }

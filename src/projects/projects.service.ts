@@ -107,13 +107,39 @@ export class ProjectsService {
       );
     }
 
-    return await queryBuilder.getMany();
+    const projects = await queryBuilder.getMany();
+
+    for (const project of projects) {
+      await this.addUserGroupsToProject(project, userId);
+    }
+
+    return projects;
   }
 
-  async findOne(
-    id: number,
+  private async addUserGroupsToProject(
+    project: Project,
     userId: number,
-  ): Promise<Project> {
+  ): Promise<void> {
+    const userGroupMemberships = await this.joinGroupRepository.find({
+      where: { user_id: userId },
+    });
+
+    const userGroupIds = userGroupMemberships.map(
+      (membership) => membership.group_id,
+    );
+
+    const projectGroups = await this.groupRepository.find({
+      where: {
+        id: In(userGroupIds),
+        projectId: project.id,
+      },
+      select: ['id', 'name'],
+    });
+
+    project.userGroups = projectGroups;
+  }
+
+  async findOne(id: number, userId: number): Promise<Project> {
     const project = await this.projectsRepository.findOne({
       where: { id },
       relations: ['groups'],
@@ -135,6 +161,7 @@ export class ProjectsService {
       throw new ForbiddenException('You do not have access to this project');
     }
 
+    await this.addUserGroupsToProject(project, userId);
     return project;
   }
 

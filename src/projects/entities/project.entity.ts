@@ -9,6 +9,7 @@ import {
 import { ProjectStatus } from '../enums/project-status.enum';
 import { Group } from '../../group/entities/group.entity';
 import { UserResponseDto } from '../../users/dto/user-response.dto';
+import { GroupInProjectDto } from '../dto/group-in-project.dto';
 
 @Entity('projects')
 export class Project {
@@ -44,4 +45,6 @@ export class Project {
   groups: Group[];
 
   members?: UserResponseDto[];
+
+  userGroups?: GroupInProjectDto[];
 }

@@ -1,7 +1,7 @@
 import { Task } from 'src/tasks/entities';
 import { User } from 'src/users/entities';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-@Entity('document')
+@Entity('documents')
 export class DocumentFile {
   @PrimaryGeneratedColumn()
   id: number;

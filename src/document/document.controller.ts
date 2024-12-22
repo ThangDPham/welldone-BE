@@ -59,7 +59,7 @@ export class DocumentsController {
             callback(null, true);
         },
         limits: { fileSize: 5 * 1024 * 1024 }, // 2MB
-        dest: './uploads/',
+        dest: process.cwd()+'/uploads',
     }))
     @ApiConsumes('multipart/form-data')
     upload(

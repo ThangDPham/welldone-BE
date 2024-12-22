@@ -62,7 +62,7 @@ export class DocumentService {
     const filename = `\"${documents.originalname}\"`;
     const fileType = `${documents.mimetype}`;
     const file = createReadStream(
-            join('./uploads', `${documents.filename}`),
+            join(process.cwd()+'/uploads', `${documents.filename}`),
             );
     return new StreamableFile(file,{
             type: `${fileType}`,

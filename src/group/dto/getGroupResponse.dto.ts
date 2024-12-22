@@ -1,7 +1,6 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateGroupDto, GetUserJoinedResponse } from 'src/group/dto';
-
-import { IsArray } from 'class-validator';
+import { IsArray, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class GetGroupResponse extends PartialType(CreateGroupDto) {
   id: number;
@@ -12,4 +11,12 @@ export class GetGroupResponse extends PartialType(CreateGroupDto) {
   role: string;
   @IsArray()
   user: GetUserJoinedResponse[];
+
+  @IsNumber()
+  @IsOptional()
+  projectId?: number;
+
+  @IsString()
+  @IsOptional()
+  projectName?: string;
 }

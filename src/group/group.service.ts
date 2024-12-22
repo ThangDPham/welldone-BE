@@ -39,6 +39,7 @@ export class GroupsService {
   ): Promise<GetGroupResponse> {
     const group = await this.groupsRepository.findOne({
       where: { id: groupId },
+      relations: ['project'], // Add project relation
     });
 
     const userRole = await this.joinGroupRepository.findOne({
@@ -52,6 +53,8 @@ export class GroupsService {
     response.createdAt = group.createdAt;
     response.updatedAt = group.updatedAt;
     response.role = userRole.role;
+    response.projectId = group.projectId;
+    response.projectName = group.project?.name;
     response.user = await this.getGroupMembers(groupId);
 
     return response;
@@ -127,6 +130,7 @@ export class GroupsService {
     for (const group of groupsJoined) {
       const groupInfo = await this.groupsRepository.findOne({
         where: { id: group.group_id },
+        relations: ['project'], // Add project relation
       });
       const getGroupResponsense = new GetGroupResponse();
       getGroupResponsense.id = groupInfo.id;
@@ -135,6 +139,8 @@ export class GroupsService {
       getGroupResponsense.description = groupInfo.description;
       getGroupResponsense.createdAt = groupInfo.createdAt;
       getGroupResponsense.updatedAt = groupInfo.updatedAt;
+      getGroupResponsense.projectId = groupInfo.projectId;
+      getGroupResponsense.projectName = groupInfo.project?.name;
       getGroupResponsense.user = [];
 
       const userJoineds = await this.joinGroupRepository.find({

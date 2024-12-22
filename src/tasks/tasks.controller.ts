@@ -52,6 +52,17 @@ export class TasksController {
     return this.tasksService.findAll(query, user.id);
   }
 
+  @Get('me')
+  @ApiOperation({ summary: 'Get current user tasks' })
+  @ApiResponse({
+    status: 200,
+    description: 'Return all tasks assigned to the current user',
+    type: [Task],
+  })
+  findMyTasks(@CurrentUser() user) {
+    return this.tasksService.findMyTasks(user.id);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get task by id' })
   @ApiResponse({
@@ -124,5 +135,34 @@ export class TasksController {
     @CurrentUser() user,
   ) {
     return this.tasksService.unassignUser(id, user.id, assigneeId);
+  }
+
+  @Get('group/:groupId')
+  @ApiOperation({ summary: 'Get all tasks for a group' })
+  @ApiResponse({
+    status: 200,
+    description: 'Return all tasks assigned to users in the group',
+    type: [Task],
+  })
+  findByGroup(
+    @Param('groupId', ParseIntPipe) groupId: number,
+    @CurrentUser() user,
+  ) {
+    return this.tasksService.findByGroup(groupId, user.id);
+  }
+
+  @Get('project/:projectId')
+  @ApiOperation({ summary: 'Get all tasks for a project' })
+  @ApiResponse({
+    status: 200,
+    description:
+      'Return all tasks assigned to users in any group of the project',
+    type: [Task],
+  })
+  findByProject(
+    @Param('projectId', ParseIntPipe) projectId: number,
+    @CurrentUser() user,
+  ) {
+    return this.tasksService.findByProject(projectId, user.id);
   }
 }

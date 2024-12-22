@@ -8,13 +8,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Task } from './entities/task.entity';
 import { CreateTaskDto, UpdateTaskDto, QueryTasksDto } from './dto';
-import { ProjectsService } from '../projects/projects.service';
 import { UsersService } from '../users/users.service';
 import { JoinGroup } from '../group/entities/join_group.entity';
 import { Project } from '../projects/entities/project.entity';
 import { In } from 'typeorm';
 import { UserRoles } from '../users/enums/user-role.enum';
 import { UserResponseDto } from '../users/dto/user-response.dto';
+import { User } from '../users/entities/user.entity';
 
 @Injectable()
 export class TasksService {
@@ -25,174 +25,114 @@ export class TasksService {
     private joinGroupRepository: Repository<JoinGroup>,
     @InjectRepository(Project)
     private projectsRepository: Repository<Project>,
-    private projectsService: ProjectsService,
     private usersService: UsersService,
   ) {}
 
-  private async validateProjectAccess(
-    projectId: number,
+  private async validateUserInGroup(
     userId: number,
+    groupId: number,
   ): Promise<void> {
-    const project = await this.projectsService.findOne(projectId, userId);
-    if (!project) {
-      throw new NotFoundException(`Project with ID ${projectId} not found`);
+    const membership = await this.joinGroupRepository.findOne({
+      where: { user_id: userId, group_id: groupId },
+    });
+    if (!membership) {
+      throw new ForbiddenException('User is not a member of this group');
     }
   }
 
-  private async getProjectMembers(projectId: number): Promise<number[]> {
-    const project = await this.projectsRepository.findOne({
-      where: { id: projectId },
-      relations: ['groups'],
-    });
-
-    const groupIds = project.groups.map((group) => group.id);
-    const memberships = await this.joinGroupRepository.find({
-      where: { group_id: In(groupIds) },
-    });
-
-    return [...new Set(memberships.map((m) => m.user_id))];
-  }
-
-  private async isProjectLeader(
-    projectId: number,
+  private async hasAccessToTask(
+    taskId: number,
     userId: number,
   ): Promise<boolean> {
-    const project = await this.projectsRepository.findOne({
-      where: { id: projectId },
-      relations: ['groups'],
+    const task = await this.taskRepository.findOne({
+      where: { id: taskId },
+      relations: ['assignees'],
     });
 
-    const groupIds = project.groups.map((group) => group.id);
-    const leaderMembership = await this.joinGroupRepository.findOne({
-      where: {
-        group_id: In(groupIds),
-        user_id: userId,
-        role: UserRoles.Leader,
-      },
-    });
-
-    return !!leaderMembership;
-  }
-
-  async create(createTaskDto: CreateTaskDto, userId: number): Promise<Task> {
-    await this.validateProjectAccess(createTaskDto.projectId, userId);
-
-    const projectMemberIds = await this.getProjectMembers(
-      createTaskDto.projectId,
-    );
-    const invalidAssignees = createTaskDto.assigneeIds.filter(
-      (id) => !projectMemberIds.includes(id),
-    );
-
-    if (invalidAssignees.length > 0) {
-      throw new BadRequestException(
-        'All assignees must be members of the project',
-      );
+    if (!task) {
+      return false;
     }
 
-    const assignees = await this.usersService.findByIds(
-      createTaskDto.assigneeIds,
-    );
-    const task = this.taskRepository.create({
-      ...createTaskDto,
-      createdById: userId,
-      assignees,
-    });
-
-    const savedTask = await this.taskRepository.save(task);
-    return this.enrichTaskWithUserRoles(savedTask, createTaskDto.projectId);
-  }
-
-  async findAll(query: QueryTasksDto, userId: number): Promise<Task[]> {
-    const queryBuilder = this.taskRepository
-      .createQueryBuilder('task')
-      .leftJoinAndSelect('task.assignees', 'assignee')
-      .leftJoinAndSelect('task.project', 'project')
-      .leftJoinAndSelect('task.createdBy', 'createdBy');
-
-    const userMemberships = await this.joinGroupRepository.find({
+    const userGroups = await this.joinGroupRepository.find({
       where: { user_id: userId },
     });
+    const userGroupIds = userGroups.map((g) => g.group_id);
 
-    const groupIds = userMemberships.map((m) => m.group_id);
-    const projects = await this.projectsRepository.find({
-      where: { groups: { id: In(groupIds) } },
+    const assigneeIds = task.assignees.map((a) => a.id);
+    const assigneeGroups = await this.joinGroupRepository.find({
+      where: { user_id: In(assigneeIds) },
     });
-    const projectIds = projects.map((p) => p.id);
+    const assigneeGroupIds = assigneeGroups.map((g) => g.group_id);
 
-    if (projectIds.length === 0) {
-      return [];
-    }
-
-    queryBuilder.andWhere('task.projectId IN (:...projectIds)', { projectIds });
-
-    if (query.status) {
-      queryBuilder.andWhere('task.status = :status', { status: query.status });
-    }
-
-    if (query.priority) {
-      queryBuilder.andWhere('task.priority = :priority', {
-        priority: query.priority,
-      });
-    }
-
-    if (query.search) {
-      queryBuilder.andWhere(
-        '(task.title ILIKE :search OR task.description ILIKE :search)',
-        { search: `%${query.search}%` },
-      );
-    }
-
-    const tasks = await queryBuilder.getMany();
-    return Promise.all(
-      tasks.map((task) => this.enrichTaskWithUserRoles(task, task.projectId)),
-    );
-  }
-
-  private async enrichTaskWithUserRoles(
-    task: Task,
-    projectId: number,
-  ): Promise<Task> {
-    if (task.assignees) {
-      const assigneesWithRoles: UserResponseDto[] = [];
-      for (const assignee of task.assignees) {
-        const membership = await this.joinGroupRepository.findOne({
-          where: {
-            user_id: assignee.id,
-            group_id: In(
-              (
-                await this.projectsRepository.findOne({
-                  where: { id: projectId },
-                  relations: ['groups'],
-                })
-              ).groups.map((g) => g.id),
-            ),
-          },
-        });
-
-        const userResponse = await this.usersService.getUserWithRole(
-          assignee.id,
-          (membership?.role as UserRoles) || UserRoles.Member,
-        );
-        assigneesWithRoles.push(userResponse);
-      }
-      task.assignees = assigneesWithRoles;
-    }
-    return task;
+    return userGroupIds.some((groupId) => assigneeGroupIds.includes(groupId));
   }
 
   async findOne(id: number, userId: number): Promise<Task> {
     const task = await this.taskRepository.findOne({
       where: { id },
-      relations: ['assignees', 'project', 'createdBy'],
+      relations: ['assignees', 'createdBy'],
     });
 
     if (!task) {
       throw new NotFoundException(`Task with ID ${id} not found`);
     }
 
-    await this.validateProjectAccess(task.projectId, userId);
-    return this.enrichTaskWithUserRoles(task, task.projectId);
+    const hasAccess = await this.hasAccessToTask(id, userId);
+    if (!hasAccess) {
+      throw new ForbiddenException('You do not have access to this task');
+    }
+
+    const enrichedAssignees: UserResponseDto[] = [];
+    for (const assignee of task.assignees) {
+      const membership = await this.joinGroupRepository.findOne({
+        where: { user_id: assignee.id },
+      });
+      const userResponse = await this.usersService.getUserWithRole(
+        assignee.id,
+        (membership?.role as UserRoles) || UserRoles.Member,
+      );
+      enrichedAssignees.push(userResponse);
+    }
+    task.assignees = enrichedAssignees;
+
+    return task;
+  }
+
+  private async canModifyTask(
+    taskId: number,
+    userId: number,
+  ): Promise<boolean> {
+    const task = await this.taskRepository.findOne({
+      where: { id: taskId },
+      relations: ['assignees'],
+    });
+
+    if (!task) {
+      throw new NotFoundException('Task not found');
+    }
+
+    if (
+      task.createdById === userId ||
+      task.assignees.some((a) => a.id === userId)
+    ) {
+      return true;
+    }
+
+    const assigneeIds = task.assignees.map((a) => a.id);
+    const leaderGroups = await this.joinGroupRepository.find({
+      where: { user_id: userId, role: UserRoles.Leader },
+    });
+
+    for (const group of leaderGroups) {
+      const groupMembers = await this.joinGroupRepository.find({
+        where: { group_id: group.group_id },
+      });
+      if (groupMembers.some((m) => assigneeIds.includes(m.user_id))) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   async update(
@@ -200,20 +140,12 @@ export class TasksService {
     updateTaskDto: UpdateTaskDto,
     userId: number,
   ): Promise<Task> {
+    if (!(await this.canModifyTask(id, userId))) {
+      throw new ForbiddenException('Not authorized to modify this task');
+    }
+
     const task = await this.findOne(id, userId);
-
     if (updateTaskDto.assigneeIds) {
-      const projectMemberIds = await this.getProjectMembers(task.projectId);
-      const invalidAssignees = updateTaskDto.assigneeIds.filter(
-        (id) => !projectMemberIds.includes(id),
-      );
-
-      if (invalidAssignees.length > 0) {
-        throw new BadRequestException(
-          'All assignees must be members of the project',
-        );
-      }
-
       const assignees = await this.usersService.findByIds(
         updateTaskDto.assigneeIds,
       );
@@ -225,16 +157,190 @@ export class TasksService {
   }
 
   async remove(id: number, userId: number): Promise<void> {
-    const task = await this.findOne(id, userId);
-    const isLeader = await this.isProjectLeader(task.projectId, userId);
-
-    if (task.createdById !== userId && !isLeader) {
-      throw new ForbiddenException(
-        'Only task creator or project leader can delete tasks',
-      );
+    if (!(await this.canModifyTask(id, userId))) {
+      throw new ForbiddenException('Not authorized to delete this task');
     }
 
+    const task = await this.findOne(id, userId);
     await this.taskRepository.remove(task);
+  }
+
+  private async enrichAssignees(
+    assignees: UserResponseDto[],
+  ): Promise<UserResponseDto[]> {
+    const enrichedAssignees: UserResponseDto[] = [];
+    for (const assignee of assignees) {
+      const membership = await this.joinGroupRepository.findOne({
+        where: { user_id: assignee.id },
+      });
+      const userResponse = await this.usersService.getUserWithRole(
+        assignee.id,
+        (membership?.role as UserRoles) || UserRoles.Member,
+      );
+      enrichedAssignees.push(userResponse);
+    }
+    return enrichedAssignees;
+  }
+
+  async create(createTaskDto: CreateTaskDto, userId: number): Promise<Task> {
+    const assignees = await this.usersService.findByIds(
+      createTaskDto.assigneeIds,
+    );
+
+    const userGroups = await this.joinGroupRepository.find({
+      where: { user_id: userId },
+    });
+    const userGroupIds = userGroups.map((g) => g.group_id);
+
+    for (const assignee of assignees) {
+      const assigneeGroups = await this.joinGroupRepository.find({
+        where: { user_id: assignee.id },
+      });
+      const assigneeGroupIds = assigneeGroups.map((g) => g.group_id);
+
+      if (!assigneeGroupIds.some((groupId) => userGroupIds.includes(groupId))) {
+        throw new ForbiddenException(
+          `Assignee ${assignee.id} must share a group with the task creator`,
+        );
+      }
+    }
+
+    const task = this.taskRepository.create({
+      ...createTaskDto,
+      createdById: userId,
+      assignees: assignees,
+    });
+
+    const savedTask = await this.taskRepository.save(task);
+
+    savedTask.assignees = await this.enrichAssignees(assignees);
+
+    return savedTask;
+  }
+
+  async findAll(query: QueryTasksDto, userId: number): Promise<Task[]> {
+    const userGroups = await this.joinGroupRepository.find({
+      where: { user_id: userId },
+    });
+    const userGroupIds = userGroups.map((g) => g.group_id);
+
+    const groupMembers = await this.joinGroupRepository.find({
+      where: { group_id: In(userGroupIds) },
+    });
+    const memberIds = [...new Set(groupMembers.map((m) => m.user_id))];
+
+    const tasks = await this.taskRepository
+      .createQueryBuilder('task')
+      .leftJoinAndSelect('task.assignees', 'assignee')
+      .leftJoinAndSelect('task.createdBy', 'createdBy')
+      .where('assignee.id IN (:...memberIds)', { memberIds })
+      .andWhere(query.status ? 'task.status = :status' : '1=1', {
+        status: query.status,
+      })
+      .andWhere(query.priority ? 'task.priority = :priority' : '1=1', {
+        priority: query.priority,
+      })
+      .andWhere(
+        query.search
+          ? '(task.title ILIKE :search OR task.description ILIKE :search)'
+          : '1=1',
+        { search: query.search ? `%${query.search}%` : '' },
+      )
+      .getMany();
+
+    // Enrich all tasks' assignees
+    for (const task of tasks) {
+      task.assignees = await this.enrichAssignees(task.assignees);
+    }
+
+    return tasks;
+  }
+
+  async findByGroup(groupId: number, userId: number): Promise<Task[]> {
+    await this.validateUserInGroup(userId, groupId);
+
+    const groupMembers = await this.joinGroupRepository.find({
+      where: { group_id: groupId },
+    });
+    const memberIds = groupMembers.map((m) => m.user_id);
+
+    const tasks = await this.taskRepository
+      .createQueryBuilder('task')
+      .leftJoinAndSelect('task.assignees', 'assignee')
+      .leftJoinAndSelect('task.createdBy', 'createdBy')
+      .where('assignee.id IN (:...memberIds)', { memberIds })
+      .getMany();
+
+    // Enrich all tasks' assignees
+    for (const task of tasks) {
+      task.assignees = await this.enrichAssignees(task.assignees);
+    }
+
+    return tasks;
+  }
+
+  async findByProject(projectId: number, userId: number): Promise<Task[]> {
+    const project = await this.projectsRepository.findOne({
+      where: { id: projectId },
+      relations: ['groups'],
+    });
+
+    if (!project) {
+      throw new NotFoundException('Project not found');
+    }
+
+    const groupIds = project.groups.map((g) => g.id);
+    const userInProject = await this.joinGroupRepository.findOne({
+      where: { user_id: userId, group_id: In(groupIds) },
+    });
+
+    if (!userInProject) {
+      throw new ForbiddenException('User is not a member of this project');
+    }
+
+    const groupMembers = await this.joinGroupRepository.find({
+      where: { group_id: In(groupIds) },
+    });
+    const memberIds = [...new Set(groupMembers.map((m) => m.user_id))];
+
+    const tasks = await this.taskRepository
+      .createQueryBuilder('task')
+      .leftJoinAndSelect('task.assignees', 'assignee')
+      .leftJoinAndSelect('task.createdBy', 'createdBy')
+      .where('assignee.id IN (:...memberIds)', { memberIds })
+      .getMany();
+
+    // Enrich all tasks' assignees
+    for (const task of tasks) {
+      task.assignees = await this.enrichAssignees(task.assignees);
+    }
+
+    return tasks;
+  }
+
+  async findMyTasks(userId: number): Promise<Task[]> {
+    const tasks = await this.taskRepository
+      .createQueryBuilder('task')
+      .leftJoinAndSelect('task.assignees', 'assignee')
+      .leftJoinAndSelect('task.createdBy', 'createdBy')
+      .where(qb => {
+        const subQuery = qb
+          .subQuery()
+          .select('task_assignments.taskId')
+          .from('task_assignments', 'task_assignments')
+          .where('task_assignments.userId = :userId')
+          .getQuery();
+        return 'task.id IN ' + subQuery;
+      })
+      .setParameter('userId', userId)
+      .getMany();
+
+    // Enrich all tasks' assignees
+    for (const task of tasks) {
+      task.assignees = await this.enrichAssignees(task.assignees);
+    }
+
+    return tasks;
   }
 
   async assignUser(
@@ -242,15 +348,39 @@ export class TasksService {
     userId: number,
     assigneeId: number,
   ): Promise<Task> {
-    const task = await this.findOne(taskId, userId);
-    const assignee = await this.usersService.findOne(assigneeId);
-    const projectMemberIds = await this.getProjectMembers(task.projectId);
-
-    if (!projectMemberIds.includes(assigneeId)) {
-      throw new BadRequestException('Assignee must be a member of the project');
+    if (!(await this.canModifyTask(taskId, userId))) {
+      throw new ForbiddenException('Not authorized to modify this task');
     }
 
-    task.assignees.push(assignee);
+    const task = await this.findOne(taskId, userId);
+    const newAssignee = await this.usersService.findOne(assigneeId);
+
+    const assigneeGroups = await this.joinGroupRepository.find({
+      where: { user_id: assigneeId },
+    });
+    const assigneeGroupIds = assigneeGroups.map((g) => g.group_id);
+
+    const existingAssigneeGroups = await this.joinGroupRepository.find({
+      where: { user_id: In(task.assignees.map((a) => a.id)) },
+    });
+    const existingGroupIds = existingAssigneeGroups.map((g) => g.group_id);
+
+    if (
+      !assigneeGroupIds.some((groupId) => existingGroupIds.includes(groupId))
+    ) {
+      throw new ForbiddenException(
+        'New assignee must share a group with existing assignees',
+      );
+    }
+
+    const currentAssignees = await this.usersService.findByIds(
+      task.assignees.map((a) => a.id),
+    );
+    currentAssignees.push(newAssignee);
+
+    // Update task with new assignees
+    task.assignees = await this.enrichAssignees(currentAssignees);
+
     return await this.taskRepository.save(task);
   }
 
@@ -259,10 +389,25 @@ export class TasksService {
     userId: number,
     assigneeId: number,
   ): Promise<Task> {
+    if (!(await this.canModifyTask(taskId, userId))) {
+      throw new ForbiddenException('Not authorized to modify this task');
+    }
+
     const task = await this.findOne(taskId, userId);
-    task.assignees = task.assignees.filter(
-      (assignee) => assignee.id !== assigneeId,
+
+    if (task.assignees.length <= 1) {
+      throw new BadRequestException('Task must have at least one assignee');
+    }
+
+    const remainingAssignees = await this.usersService.findByIds(
+      task.assignees
+        .filter((assignee) => assignee.id !== assigneeId)
+        .map((a) => a.id),
     );
+
+    // Update task with remaining assignees
+    task.assignees = await this.enrichAssignees(remainingAssignees);
+
     return await this.taskRepository.save(task);
   }
 }

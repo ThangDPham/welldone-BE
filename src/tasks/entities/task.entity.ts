@@ -10,7 +10,6 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { TaskPriority, TaskStatus } from '../enums';
-import { Project } from '../../projects/entities/project.entity';
 import { User } from '../../users/entities/user.entity';
 import { UserResponseDto } from '../../users/dto/user-response.dto';
 
@@ -47,13 +46,6 @@ export class Task {
 
   @UpdateDateColumn()
   updatedAt: Date;
-
-  @ManyToOne(() => Project, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'projectId' })
-  project: Project;
-
-  @Column()
-  projectId: number;
 
   @ManyToMany(() => User)
   @JoinTable({

@@ -57,12 +57,6 @@ export class CreateTaskDto {
   status?: TaskStatus;
 
   @ApiProperty({
-    description: 'Project ID',
-  })
-  @IsNumber()
-  projectId: number;
-
-  @ApiProperty({
     description: 'Assignee user IDs',
     type: [Number],
   })

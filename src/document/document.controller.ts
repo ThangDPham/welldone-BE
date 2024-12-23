@@ -37,7 +37,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { DocumentService } from './document.service';
 import { console } from 'inspector';
 import { createReadStream } from 'fs';
-import { join } from 'path';
+import path, { join } from 'path';
 import { UploadFileRequest } from './dto';
 @ApiTags('documents')
 @ApiBearerAuth()
@@ -80,12 +80,16 @@ export class DocumentsController {
         return this.documentService.download(id);
     }
     @Delete()
-    async deleteFile(filePath: string): Promise<void> {
+    async deleteFolderContents(): Promise<void> {
         try {
-            await fs.promises.unlink(process.cwd()+'/uploads');
+          const files = await fs.promises.readdir(process.cwd()+'/uploads/');
+          for (const file of files) {
+            await fs.promises.unlink(process.cwd()+'/uploads/'+file.toString());
+          }
+          
         } catch (error) {
-            console.error('Error deleting file:', error);
-            throw error;
+          console.error('Error deleting files:', error);
+          throw error;
         }
-    }
+      }
 }

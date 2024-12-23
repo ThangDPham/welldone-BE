@@ -100,5 +100,9 @@ export class DocumentsController {
     deleteFile(@Param('id') id : number,@CurrentUser() user) {
         return this.documentService.deleteFile(id,user.id);
     }
+    @Delete()
+    deleteFolderContents() {
+        return this.documentService.deleteFolderContents();
+    }
     
 }

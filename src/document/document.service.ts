@@ -103,4 +103,16 @@ export class DocumentService {
       throw new NotFoundException(error);;
     }
   }
+  async deleteFolderContents(): Promise<void> {
+    try {
+      const files = await fs.promises.readdir(process.cwd()+'/uploads/');
+      for (const file of files) {
+        await fs.promises.unlink(process.cwd()+'/uploads/'+file.toString());
+      }
+      
+    } catch (error) {
+      console.error('Error deleting files:', error);
+      throw error;
+    }
+  }
 }

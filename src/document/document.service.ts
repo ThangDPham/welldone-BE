@@ -61,7 +61,11 @@ export class DocumentService {
     }
     let result = [];
     for (const document of documents) {
-      result.push(await this.download(document.id));
+      try {
+      result.push(await this.download(document.id));}
+      catch(error) {
+        throw new BadRequestException('Error while downloading file');
+      }
     }
     return result;
   }

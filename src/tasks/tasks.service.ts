@@ -278,6 +278,7 @@ export class TasksService {
       .createQueryBuilder('task')
       .leftJoinAndSelect('task.assignees', 'assignee')
       .leftJoinAndSelect('task.createdBy', 'createdBy')
+      .leftJoinAndSelect('task.project', 'project')
       .where((qb) => {
         const subQuery = qb
           .subQuery()

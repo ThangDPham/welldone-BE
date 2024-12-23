@@ -17,7 +17,7 @@ import {
   StreamableFile,
 } from '@nestjs/common';
 
-import * as fs from 'fs';
+
 import { Request, Response} from 'express';
 import {
   ApiTags,
@@ -75,21 +75,16 @@ export class DocumentsController {
         return this.documentService.create(req, file,user.id);
     }
 
-  @Get(':id')
+    @Get(':id')
     getFileUsingStaticValues( @Param('id') id : number) {
         return this.documentService.download(id);
     }
-    @Delete()
-    async deleteFolderContents(): Promise<void> {
-        try {
-          const files = await fs.promises.readdir(process.cwd()+'/uploads/');
-          for (const file of files) {
-            await fs.promises.unlink(process.cwd()+'/uploads/'+file.toString());
-          }
-          
-        } catch (error) {
-          console.error('Error deleting files:', error);
-          throw error;
-        }
-      }
+    @Delete(':id')
+    @ApiOperation({ summary: 'Delete File' })
+    @ApiNotFoundResponse({description: 'File not found'})
+    @ApiForbiddenResponse({description: 'You do not have permission to edit this file'})
+    deleteFile(@Param('id') id : number,@CurrentUser() user) {
+        return this.documentService.deleteFile(id,user.id);
+    }
+    
 }

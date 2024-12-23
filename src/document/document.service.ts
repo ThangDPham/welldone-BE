@@ -21,6 +21,7 @@ import { join } from 'path';
 import { Task } from 'src/tasks/entities';
 import { TasksService } from 'src/tasks/tasks.service';
 import { User } from 'src/users/entities';
+import * as fs from 'fs';
 
 @Injectable()
 export class DocumentService {
@@ -68,5 +69,22 @@ export class DocumentService {
             type: `${fileType}`,
             disposition: `attachment; filename=${filename}`,
         });
+  }
+  async deleteFile(fileId: number, user_id: number): Promise<void> {
+    try {
+      const fileDelete = await this.documentRepository.findOne({where: {id: fileId}})
+      if (!fileDelete) {
+        throw new NotFoundException('File not found');
+      }
+      if (fileDelete.user_id !== user_id) {
+        throw new ForbiddenException('You do not have permission to edit this file');
+      }
+      await fs.promises.unlink(process.cwd()+'/uploads/'+fileDelete.filename);
+      await this.documentRepository.delete(fileId);
+
+    } catch (error) {
+      console.error('Error deleting file:', error);
+      throw error;
+    }
   }
 }

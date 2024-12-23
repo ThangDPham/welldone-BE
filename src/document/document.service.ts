@@ -53,6 +53,18 @@ export class DocumentService {
 
     return await this.documentRepository.save(documents);
   }
+
+  async findAllbyTaskId(task_id: number): Promise<StreamableFile[]> {
+    const documents = await this.documentRepository.find({where: {task_id}});
+    if (!documents) {
+      throw new NotFoundException('This task has no documents');
+    }
+    let result = [];
+    for (const document of documents) {
+      result.push(await this.download(document.id));
+    }
+    return result;
+  }
   async download(id: number): Promise<StreamableFile> {
     const documents = await this.documentRepository.findOne({
       where:{ id },
@@ -65,10 +77,11 @@ export class DocumentService {
     const file = createReadStream(
             join(process.cwd()+'/uploads', `${documents.filename}`),
             );
-    return new StreamableFile(file,{
+    let result = new StreamableFile(file,{
             type: `${fileType}`,
             disposition: `attachment; filename=${filename}`,
         });
+    return result;
   }
   async deleteFile(fileId: number, user_id: number): Promise<void> {
     try {

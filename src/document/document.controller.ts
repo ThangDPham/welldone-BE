@@ -15,10 +15,11 @@ import {
   Res,
   Header,
   StreamableFile,
+  Query,
 } from '@nestjs/common';
 
 
-import { Request, Response} from 'express';
+import { query, Request, Response} from 'express';
 import {
   ApiTags,
   ApiOperation,
@@ -39,6 +40,7 @@ import { console } from 'inspector';
 import { createReadStream } from 'fs';
 import path, { join } from 'path';
 import { UploadFileRequest } from './dto';
+import { QueryFilesDto } from './dto/queryFile.dto';
 @ApiTags('documents')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
@@ -73,6 +75,18 @@ export class DocumentsController {
             throw new Error('Invalid file');
         }
         return this.documentService.create(req, file,user.id);
+    }
+
+    @Get()
+    @ApiOperation({ summary: 'Get all accessible files' })
+    @ApiResponse({
+        status: 200,
+        description: 'Returns list of accessible files',
+    })
+    @ApiNotFoundResponse({description: 'File not found'})
+    @ApiForbiddenResponse({description: 'You do not have permission to view this file'})
+    findAll(@Query() query : QueryFilesDto) {
+        return this.documentService.findAllbyTaskId(query.task_id);
     }
 
     @Get(':id')

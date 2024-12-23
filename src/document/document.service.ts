@@ -62,7 +62,8 @@ export class DocumentService {
     }
     let result = [];
     for (const document of documents) {
-      result.push(new GetTaskDocumentResponse(document.id, document.user, document.originalname));
+      const user = await this.userRepository.findOne({where: {id: document.user_id}})
+      result.push(new GetTaskDocumentResponse(document.id, user, document.originalname));
     }
     return result;
   }

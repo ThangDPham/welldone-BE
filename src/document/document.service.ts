@@ -22,6 +22,7 @@ import { Task } from 'src/tasks/entities';
 import { TasksService } from 'src/tasks/tasks.service';
 import { User } from 'src/users/entities';
 import * as fs from 'fs';
+import { GetTaskDocumentResponse } from './dto/gettaskDocResponse.dto';
 
 @Injectable()
 export class DocumentService {
@@ -54,18 +55,14 @@ export class DocumentService {
     return await this.documentRepository.save(documents);
   }
 
-  async findAllbyTaskId(task_id: number): Promise<StreamableFile[]> {
+  async findAllbyTaskId(task_id: number): Promise<GetTaskDocumentResponse[]> {
     const documents = await this.documentRepository.find({where: {task_id}});
     if (!documents) {
       throw new NotFoundException('This task has no documents');
     }
     let result = [];
     for (const document of documents) {
-      try {
-      result.push(await this.download(document.id));}
-      catch(error) {
-        throw new BadRequestException('Error while downloading file');
-      }
+      result.push(new GetTaskDocumentResponse(document.id, document.user, document.originalname));
     }
     return result;
   }

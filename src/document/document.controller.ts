@@ -16,6 +16,8 @@ import {
   Header,
   StreamableFile,
 } from '@nestjs/common';
+
+import * as fs from 'fs';
 import { Request, Response} from 'express';
 import {
   ApiTags,
@@ -76,5 +78,14 @@ export class DocumentsController {
   @Get(':id')
     getFileUsingStaticValues( @Param('id') id : number) {
         return this.documentService.download(id);
+    }
+    @Delete()
+    async deleteFile(filePath: string): Promise<void> {
+        try {
+            await fs.promises.unlink(process.cwd()+'/uploads');
+        } catch (error) {
+            console.error('Error deleting file:', error);
+            throw error;
+        }
     }
 }

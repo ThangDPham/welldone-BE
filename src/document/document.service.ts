@@ -96,8 +96,7 @@ export class DocumentService {
       await this.documentRepository.delete(fileId);
 
     } catch (error) {
-      console.error('Error deleting file:', error);
-      throw error;
+      throw new NotFoundException(error);;
     }
   }
 }

@@ -147,6 +147,9 @@ export class GroupsService {
         where: { id: group.group_id },
         relations: ['project'], // Add project relation
       });
+      if (!groupInfo) {
+        continue;
+      }
       const getGroupResponsense = new GetGroupResponse();
       getGroupResponsense.id = groupInfo.id;
       getGroupResponsense.role = group.role;

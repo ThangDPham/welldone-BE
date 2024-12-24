@@ -19,6 +19,8 @@ import { GroupsService } from './group.service';
 import { CreateGroupDto, UpdateGroupDto } from './dto';
 import { CurrentUser } from 'src/auth/decorators';
 import { Group } from './entities';
+import { User } from 'src/users/entities';
+import { getGroupbyUserIdRes } from './ApiExample/getGroupbyUserIdRes.example';
 @ApiTags('groups')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
@@ -33,19 +35,10 @@ export class GroupsController {
   create(@CurrentUser() user, @Body() createGroupDto: CreateGroupDto) {
     return this.groupsService.create(createGroupDto, user.id);
   }
-  @Get(':name')
-  @ApiOperation({ summary: 'Get a group by name' })
-  @ApiResponse({ status: 200, description: 'Return the group', type: Group, isArray: true})
-  @ApiResponse({ status: 404, description: 'Group not found' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-
-  findOne(@Param('name') name: string) {
-    return this.groupsService.findbyName(name);
-  }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get a group by id' })
-  @ApiResponse({ status: 200, description: 'Return the group' })
+  @ApiOperation({ summary: 'Get a group by id'})
+  @ApiResponse({ status: 200, description: 'Return the group', example: getGroupbyUserIdRes, isArray: true })
   @ApiResponse({ status: 404, description: 'Group not found' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   findOnebyId(@Param('id') id: number) {
@@ -54,7 +47,7 @@ export class GroupsController {
 
   @Get()
   @ApiOperation({ summary: 'get all groups that user belongs to' })
-  @ApiResponse({ status: 200, description: 'Return the groups' })
+  @ApiResponse({ status: 200, description: 'Return the groups',example: getGroupbyUserIdRes })
   @ApiResponse({ status: 404, description: 'Groups not found' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   findAllByUserId(@CurrentUser() user) {

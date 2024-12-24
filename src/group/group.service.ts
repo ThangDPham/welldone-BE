@@ -102,13 +102,17 @@ export class GroupsService {
   }
 
   async findOnebyId(id: number): Promise<Group> {
-    const group = await this.groupsRepository.findOne({
-      where: { id },
-      // relations: ['project'],
+    const group = await this.groupsRepository.findOneBy({
+      id,
     });
+    console.log("đaaddd");
+    console.log(group + "hahaha");
     if (!group) {
       throw new NotFoundException('Group not found');
     }
+    const project = await this.projectsRepository.findOneBy({id: group.projectId});
+    group.project = project;
+    console.log(group);
     return group;
   }
   async findbyName(name: string): Promise<Group[]> {
@@ -116,6 +120,7 @@ export class GroupsService {
     if (!group) {
       throw new NotFoundException('Group not found');
     }
+
     return group;
   }
   async findAllByUserId(user_id: number): Promise<GetGroupResponse[]> {

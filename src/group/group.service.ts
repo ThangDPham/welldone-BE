@@ -101,27 +101,37 @@ export class GroupsService {
     });
   }
 
-  async findOnebyId(id: number): Promise<Group> {
+  async findOnebyId(id: number): Promise<GetGroupResponse> {
     const group = await this.groupsRepository.findOneBy({
       id,
     });
-    console.log("đaaddd");
-    console.log(group + "hahaha");
     if (!group) {
       throw new NotFoundException('Group not found');
     }
     const project = await this.projectsRepository.findOneBy({id: group.projectId});
-    group.project = project;
-    console.log(group);
-    return group;
-  }
-  async findbyName(name: string): Promise<Group[]> {
-    const group = await this.groupsRepository.find({ where: { name } });
-    if (!group) {
-      throw new NotFoundException('Group not found');
-    }
+    const getGroupResponsense = new GetGroupResponse();
+      getGroupResponsense.id = group.id;
+      getGroupResponsense.name = group.name;
+      getGroupResponsense.description = group.description;
+      getGroupResponsense.createdAt = group.createdAt;
+      getGroupResponsense.updatedAt = group.updatedAt;
+      getGroupResponsense.projectId = group.projectId;
+      getGroupResponsense.projectName = group.project?.name;
+      getGroupResponsense.user = [];
 
-    return group;
+      const userJoineds = await this.joinGroupRepository.find({
+        where: { group_id: group.id },
+      });
+
+      for (const userJoined of userJoineds) {
+        const userResponse = await this.usersService.getUserWithRole(
+          userJoined.user_id,
+          userJoined.role as UserRoles,
+        );
+        getGroupResponsense.user.push(userResponse);
+      }
+    return getGroupResponsense;
+    
   }
   async findAllByUserId(user_id: number): Promise<GetGroupResponse[]> {
     const groupsJoined = await this.joinGroupRepository.find({
@@ -170,7 +180,7 @@ export class GroupsService {
     updateGroupDto: UpdateGroupDto,
     user_id: number,
   ): Promise<Group> {
-    const group = await this.findOnebyId(id);
+    const group = await this.groupsRepository.findOne({where: {id}});
 
     if (!group) {
       throw new NotFoundException('Group not found');
@@ -193,7 +203,7 @@ export class GroupsService {
       await this.addNewGroupMembers(group.id, list_user_members);
     }
 
-    return this.findOnebyId(id);
+    return this.groupsRepository.findOne({where: {id}});
   }
 
   private async addNewGroupMembers(
@@ -223,7 +233,7 @@ export class GroupsService {
   }
 
   async remove(id: number, user_id: number): Promise<void> {
-    const group = await this.findOnebyId(id);
+    const group = await this.groupsRepository.findOne({where: {id}});
     if (group.user_id_create !== user_id) {
       throw new NotFoundException('Not authorized to delete this group');
     }

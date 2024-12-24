@@ -165,72 +165,63 @@ export class ProjectsService {
     return project;
   }
 
-  private async validateAndAddGroups(
-    projectId: number,
-    newGroupIds: number[],
-    userId: number,
-  ): Promise<void> {
-    const groups = await this.groupRepository.find({
-      where: { id: In(newGroupIds) },
-    });
-
-    if (groups.length !== newGroupIds.length) {
-      throw new BadRequestException('One or more groups not found');
-    }
-
-    const leaderMemberships = await this.joinGroupRepository.find({
-      where: {
-        user_id: userId,
-        group_id: In(newGroupIds),
-        role: UserRoles.Leader,
-      },
-    });
-
-    if (leaderMemberships.length === 0) {
-      throw new ForbiddenException(
-        'You must be a leader in at least one of the specified groups',
-      );
-    }
-
-    const groupsWithProject = groups.filter(
-      (group) => group.projectId !== null && group.projectId !== projectId,
-    );
-
-    if (groupsWithProject.length > 0) {
-      throw new BadRequestException(
-        `Groups ${groupsWithProject
-          .map((g) => g.id)
-          .join(', ')} are already associated with other projects`,
-      );
-    }
-
-    await this.groupRepository.update(
-      { id: In(newGroupIds) },
-      { projectId: projectId },
-    );
-  }
-
   async update(
     id: number,
     updateProjectDto: UpdateProjectDto,
     userId: number,
   ): Promise<Project> {
     const project = await this.findOne(id, userId);
-    const groupIds = project.groups.map((group) => group.id);
+    const currentGroupIds = project.groups.map((group) => group.id);
 
-    const isLeader = await this.validateUserIsLeader(userId, groupIds);
+    const isLeader = await this.validateUserIsLeader(userId, currentGroupIds);
     if (!isLeader) {
       throw new ForbiddenException('Only group leaders can update projects');
     }
 
     if (updateProjectDto.groupIds?.length > 0) {
-      const newGroupIds = updateProjectDto.groupIds.filter(
-        (groupId) => !groupIds.includes(groupId),
+      const groups = await this.groupRepository.find({
+        where: { id: In(updateProjectDto.groupIds) },
+      });
+
+      if (groups.length !== updateProjectDto.groupIds.length) {
+        throw new BadRequestException('One or more groups not found');
+      }
+
+      const leaderMemberships = await this.joinGroupRepository.find({
+        where: {
+          user_id: userId,
+          group_id: In(updateProjectDto.groupIds),
+          role: UserRoles.Leader,
+        },
+      });
+
+      if (leaderMemberships.length === 0) {
+        throw new ForbiddenException(
+          'You must be a leader in at least one of the specified groups',
+        );
+      }
+
+      const groupsWithProject = groups.filter(
+        (group) => group.projectId !== null && group.projectId !== id,
       );
 
-      if (newGroupIds.length > 0) {
-        await this.validateAndAddGroups(id, newGroupIds, userId);
+      if (groupsWithProject.length > 0) {
+        throw new BadRequestException(
+          `Groups ${groupsWithProject
+            .map((g) => g.id)
+            .join(', ')} are already associated with other projects`,
+        );
       }
+
+      await this.groupRepository.update(
+        { id: In(currentGroupIds) },
+        { projectId: null },
+      );
+
+      await this.groupRepository.update(
+        { id: In(updateProjectDto.groupIds) },
+        { projectId: id },
+      );
     }
 
     const { groupIds: _, ...projectData } = updateProjectDto;

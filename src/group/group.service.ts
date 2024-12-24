@@ -123,7 +123,7 @@ export class GroupsService {
       where: { user_id: user_id },
     });
     if (groupsJoined.length == 0) {
-      throw new NotFoundException('Groups not found');
+      return [];
     }
 
     const groups = [];

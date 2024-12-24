@@ -18,6 +18,7 @@ import { JwtAuthGuard } from '../auth/guards';
 import { GroupsService } from './group.service';
 import { CreateGroupDto, UpdateGroupDto } from './dto';
 import { CurrentUser } from 'src/auth/decorators';
+import { Group } from './entities';
 @ApiTags('groups')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
@@ -25,7 +26,7 @@ import { CurrentUser } from 'src/auth/decorators';
 export class GroupsController {
   constructor(private readonly groupsService: GroupsService) {}
   @Post()
-  @ApiOperation({ summary: 'Create a new group' })
+  @ApiOperation({ summary: 'Create a new group and associate it with existing users' })
   @ApiResponse({ status: 201, description: 'Group successfully created' })
   @ApiResponse({ status: 400, description: 'Bad request' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -34,9 +35,10 @@ export class GroupsController {
   }
   @Get(':name')
   @ApiOperation({ summary: 'Get a group by name' })
-  @ApiResponse({ status: 200, description: 'Return the group' })
+  @ApiResponse({ status: 200, description: 'Return the group', type: Group, isArray: true})
   @ApiResponse({ status: 404, description: 'Group not found' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
+
   findOne(@Param('name') name: string) {
     return this.groupsService.findbyName(name);
   }

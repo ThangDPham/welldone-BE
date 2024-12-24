@@ -227,7 +227,7 @@ export class GroupsService {
       throw new NotFoundException('Group not found');
     }
     
-    await this.groupsRepository.delete(id);
+    await this.groupsRepository.remove(group);
   }
 
   async getGroupMembers(groupId: number): Promise<UserResponseDto[]> {

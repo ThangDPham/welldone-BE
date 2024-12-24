@@ -95,7 +95,7 @@ export class DocumentService {
         throw new ForbiddenException('You do not have permission to edit this file');
       }
       await fs.promises.unlink(process.cwd()+'/uploads/'+fileDelete.filename);
-      await this.documentRepository.delete(fileId);
+      await this.documentRepository.remove(fileDelete);
 
     } catch (error) {
       throw new NotFoundException(error);;

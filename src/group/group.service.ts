@@ -219,13 +219,14 @@ export class GroupsService {
 
   async remove(id: number, user_id: number): Promise<void> {
     const group = await this.findOnebyId(id);
+    if (group.user_id_create !== user_id) {
+      throw new NotFoundException('Not authorized to delete this group');
+    }
     await this.joinGroupRepository.delete({ group_id: group.id });
     if (!group) {
       throw new NotFoundException('Group not found');
     }
-    if (group.user_id_create !== user_id) {
-      throw new NotFoundException('Not authorized to delete this group');
-    }
+    
     await this.groupsRepository.delete(id);
   }
 

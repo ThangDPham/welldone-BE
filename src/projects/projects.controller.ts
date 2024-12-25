@@ -21,6 +21,8 @@ import { CreateProjectDto, UpdateProjectDto, QueryProjectsDto } from './dto';
 import { JwtAuthGuard } from '../auth/guards';
 import { CurrentUser } from '../auth/decorators';
 import { UserResponseDto } from '../users/dto/user-response.dto';
+import { Project } from './entities/project.entity';
+import { AddGroupDto } from './dto/add-group.dto';
 
 @ApiTags('projects')
 @ApiBearerAuth()
@@ -95,19 +97,18 @@ export class ProjectsController {
   @Post(':id/groups')
   @ApiOperation({ summary: 'Add a group to project' })
   @ApiResponse({
-    status: 201,
-    description: 'Group added to project successfully',
+    status: 200,
+    description: 'The group has been successfully added to the project.',
+    type: Project,
   })
-  @ApiResponse({
-    status: 403,
-    description: 'Forbidden - Insufficient permissions',
-  })
-  async addGroup(
-    @Param('id', ParseIntPipe) projectId: number,
-    @Body('groupId', ParseIntPipe) groupId: number,
+  @ApiResponse({ status: 404, description: 'Project or group not found' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  addGroup(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() addGroupDto: AddGroupDto,
     @CurrentUser() user,
   ) {
-    return this.projectsService.addGroup(projectId, groupId, user.id);
+    return this.projectsService.addGroup(id, addGroupDto.groupId, user.id);
   }
 
   @Delete(':id/groups/:groupId')

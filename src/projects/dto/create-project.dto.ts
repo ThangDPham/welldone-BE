@@ -51,7 +51,7 @@ export class CreateProjectDto {
     description: 'Project status',
     enum: ProjectStatus,
     default: ProjectStatus.NOT_STARTED,
-    example: 'NOT_STARTED'
+    example: 'NOT_STARTED',
   })
   @IsEnum(ProjectStatus)
   status: ProjectStatus;
@@ -59,7 +59,7 @@ export class CreateProjectDto {
   @ApiProperty({
     description: 'Array of group IDs to associate with the project',
     type: [Number],
-    example: [1, 2, 3]
+    example: [1, 2, 3],
   })
   @IsArray()
   @IsNumber({}, { each: true })

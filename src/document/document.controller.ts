@@ -18,8 +18,7 @@ import {
   Query,
 } from '@nestjs/common';
 
-
-import { query, Request, Response} from 'express';
+import { query, Request, Response } from 'express';
 import {
   ApiTags,
   ApiOperation,
@@ -46,63 +45,62 @@ import { QueryFilesDto } from './dto/queryFile.dto';
 @UseGuards(JwtAuthGuard)
 @Controller('documents')
 export class DocumentsController {
-
-    
-    constructor(private readonly documentService: DocumentService) {}
-    @Post('upload')
-    @ApiOperation({ summary: 'Create a new file' })
-    @ApiNotFoundResponse({description: 'not found'})
-    @ApiForbiddenResponse({description: 'unauthorized'})
-    @ApiUnprocessableEntityResponse({description: 'bad request'})
-    @ApiInternalServerErrorResponse({description: 'Internal Server Error'})
-    @UseInterceptors(FileInterceptor('file', {
-        fileFilter: (req, file, callback) => {
-            if (!file.originalname.match(/\.(pdf|docx|txt)$/)) {
-                return callback(new Error('Only.pdf files are allowed.'), false);
-            }
-            callback(null, true);
-        },
-        limits: { fileSize: 5 * 1024 * 1024 }, // 2MB
-        dest: process.cwd()+'/uploads',
-    }))
-    @ApiConsumes('multipart/form-data')
-    upload(
-        @Req() req: Request,
-        @UploadedFile() file,
-        @CurrentUser() user
-    ) {
-        if (!file) {
-            throw new Error('Invalid file');
+  constructor(private readonly documentService: DocumentService) {}
+  @Post('upload')
+  @ApiOperation({ summary: 'Create a new file' })
+  @ApiNotFoundResponse({ description: 'not found' })
+  @ApiForbiddenResponse({ description: 'unauthorized' })
+  @ApiUnprocessableEntityResponse({ description: 'bad request' })
+  @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
+  @UseInterceptors(
+    FileInterceptor('file', {
+      fileFilter: (req, file, callback) => {
+        if (!file.originalname.match(/\.(pdf|docx|txt)$/)) {
+          return callback(new Error('Only.pdf files are allowed.'), false);
         }
-        return this.documentService.create(req, file,user.id);
+        callback(null, true);
+      },
+      limits: { fileSize: 5 * 1024 * 1024 }, // 2MB
+      dest: process.cwd() + '/uploads',
+    }),
+  )
+  @ApiConsumes('multipart/form-data')
+  upload(@Req() req: Request, @UploadedFile() file, @CurrentUser() user) {
+    if (!file) {
+      throw new Error('Invalid file');
     }
+    return this.documentService.create(req, file, user.id);
+  }
 
-    @Get()
-    @ApiOperation({ summary: 'Get all accessible files' })
-    @ApiResponse({
-        status: 200,
-        description: 'Returns list of accessible files',
-    })
-    @ApiNotFoundResponse({description: 'File not found'})
-    @ApiForbiddenResponse({description: 'You do not have permission to view this file'})
-    findAll(@Query() query : QueryFilesDto) {
-        return this.documentService.findAllbyTaskId(query.task_id);
-    }
+  @Get()
+  @ApiOperation({ summary: 'Get all accessible files' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns list of accessible files',
+  })
+  @ApiNotFoundResponse({ description: 'File not found' })
+  @ApiForbiddenResponse({
+    description: 'You do not have permission to view this file',
+  })
+  findAll(@Query() query: QueryFilesDto) {
+    return this.documentService.findAllbyTaskId(query.task_id);
+  }
 
-    @Get(':id')
-    getFileUsingStaticValues( @Param('id') id : number) {
-        return this.documentService.download(id);
-    }
-    @Delete(':id')
-    @ApiOperation({ summary: 'Delete File' })
-    @ApiNotFoundResponse({description: 'File not found'})
-    @ApiForbiddenResponse({description: 'You do not have permission to edit this file'})
-    deleteFile(@Param('id') id : number,@CurrentUser() user) {
-        return this.documentService.deleteFile(id,user.id);
-    }
-    @Delete()
-    deleteFolderContents() {
-        return this.documentService.deleteFolderContents();
-    }
-    
+  @Get(':id')
+  getFileUsingStaticValues(@Param('id') id: number) {
+    return this.documentService.download(id);
+  }
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete File' })
+  @ApiNotFoundResponse({ description: 'File not found' })
+  @ApiForbiddenResponse({
+    description: 'You do not have permission to edit this file',
+  })
+  deleteFile(@Param('id') id: number, @CurrentUser() user) {
+    return this.documentService.deleteFile(id, user.id);
+  }
+  @Delete()
+  deleteFolderContents() {
+    return this.documentService.deleteFolderContents();
+  }
 }

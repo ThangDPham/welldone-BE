@@ -15,40 +15,38 @@ import { ApiProperty } from '@nestjs/swagger';
 
 @Entity('projects')
 export class Project {
-  @ApiProperty(
-    {
-      example: 1
-    }
-  )
+  @ApiProperty({
+    example: 1,
+  })
   @PrimaryGeneratedColumn()
   id: number;
 
   @ApiProperty({
-    example: 'My First Project'
+    example: 'My First Project',
   })
   @Column({ length: 100 })
   name: string;
 
   @ApiProperty({
-    example: 'This is my first project'
+    example: 'This is my first project',
   })
   @Column({ type: 'text', nullable: true })
   description: string;
 
   @ApiProperty({
-    example: '2022-01-01'
+    example: '2022-01-01',
   })
   @Column({ type: 'timestamp' })
   startDate: Date;
 
   @ApiProperty({
-    example: '2022-12-31'
+    example: '2022-12-31',
   })
   @Column({ type: 'timestamp' })
   endDate: Date;
 
   @ApiProperty({
-    example: 'NOT_STARTED'
+    example: 'NOT_STARTED',
   })
   @Column({
     type: 'enum',
@@ -58,13 +56,13 @@ export class Project {
   status: ProjectStatus;
 
   @ApiProperty({
-    example: '2022-01-01T12:00:00Z'
+    example: '2022-01-01T12:00:00Z',
   })
   @CreateDateColumn()
   createdAt: Date;
 
   @ApiProperty({
-    example: '2022-01-01T12:00:00Z'
+    example: '2022-01-01T12:00:00Z',
   })
   @UpdateDateColumn()
   updatedAt: Date;

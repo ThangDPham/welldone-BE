@@ -8,7 +8,10 @@ import { Group, JoinGroup } from 'src/group/entities';
 import { Project } from 'src/projects/entities';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Task, JoinGroup, Project, Group]), UsersModule],
+  imports: [
+    TypeOrmModule.forFeature([Task, JoinGroup, Project, Group]),
+    UsersModule,
+  ],
   controllers: [TasksController],
   providers: [TasksService],
   exports: [TasksService],

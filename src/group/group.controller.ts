@@ -28,7 +28,9 @@ import { getGroupbyUserIdRes } from './ApiExample/getGroupbyUserIdRes.example';
 export class GroupsController {
   constructor(private readonly groupsService: GroupsService) {}
   @Post()
-  @ApiOperation({ summary: 'Create a new group and associate it with existing users' })
+  @ApiOperation({
+    summary: 'Create a new group and associate it with existing users',
+  })
   @ApiResponse({ status: 201, description: 'Group successfully created' })
   @ApiResponse({ status: 400, description: 'Bad request' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -37,8 +39,13 @@ export class GroupsController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get a group by id'})
-  @ApiResponse({ status: 200, description: 'Return the group', example: getGroupbyUserIdRes, isArray: true })
+  @ApiOperation({ summary: 'Get a group by id' })
+  @ApiResponse({
+    status: 200,
+    description: 'Return the group',
+    example: getGroupbyUserIdRes,
+    isArray: true,
+  })
   @ApiResponse({ status: 404, description: 'Group not found' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   findOnebyId(@Param('id') id: number) {
@@ -47,7 +54,11 @@ export class GroupsController {
 
   @Get()
   @ApiOperation({ summary: 'get all groups that user belongs to' })
-  @ApiResponse({ status: 200, description: 'Return the groups',example: getGroupbyUserIdRes })
+  @ApiResponse({
+    status: 200,
+    description: 'Return the groups',
+    example: getGroupbyUserIdRes,
+  })
   @ApiResponse({ status: 404, description: 'Groups not found' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   findAllByUserId(@CurrentUser() user) {

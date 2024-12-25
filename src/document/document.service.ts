@@ -8,7 +8,7 @@ import {
   StreamableFile,
 } from '@nestjs/common';
 
-import { Request, Response} from 'express';
+import { Request, Response } from 'express';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 // import { CreateUserDto, UpdateUserDto } from './dto';
@@ -34,15 +34,21 @@ export class DocumentService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
   ) {}
-  async create(@Req() req: Request, @UploadedFile() file, user_id: number): Promise<DocumentFile> {
+  async create(
+    @Req() req: Request,
+    @UploadedFile() file,
+    user_id: number,
+  ): Promise<DocumentFile> {
     const documents = this.documentRepository.create();
-    const task = await this.taskRepository.findOne({where:{id: parseInt(req.body.task_id, 10)}});
+    const task = await this.taskRepository.findOne({
+      where: { id: parseInt(req.body.task_id, 10) },
+    });
     if (!task) {
       throw new NotFoundException('Task not found');
     }
     documents.task = task;
     documents.task_id = task.id;
-    const user = await this.userRepository.findOne({where:{id : user_id}});
+    const user = await this.userRepository.findOne({ where: { id: user_id } });
     documents.user = user;
     documents.user_id = user.id;
 
@@ -56,20 +62,31 @@ export class DocumentService {
   }
 
   async findAllbyTaskId(task_id: number): Promise<GetTaskDocumentResponse[]> {
-    const documents = await this.documentRepository.find({where: {task_id}});
+    const documents = await this.documentRepository.find({
+      where: { task_id },
+    });
     if (!documents) {
       throw new NotFoundException('This task has no documents');
     }
-    let result = [];
+    const result = [];
     for (const document of documents) {
-      const user = await this.userRepository.findOne({where: {id: document.user_id}})
-      result.push(new GetTaskDocumentResponse(document.id, user, document.originalname, document.createdAt));
+      const user = await this.userRepository.findOne({
+        where: { id: document.user_id },
+      });
+      result.push(
+        new GetTaskDocumentResponse(
+          document.id,
+          user,
+          document.originalname,
+          document.createdAt,
+        ),
+      );
     }
     return result;
   }
   async download(id: number): Promise<StreamableFile> {
     const documents = await this.documentRepository.findOne({
-      where:{ id },
+      where: { id },
     });
     if (!documents) {
       throw new NotFoundException('Document not found');
@@ -77,37 +94,41 @@ export class DocumentService {
     const filename = `\"${documents.originalname}\"`;
     const fileType = `${documents.mimetype}`;
     const file = createReadStream(
-            join(process.cwd()+'/uploads', `${documents.filename}`),
-            );
-    let result = new StreamableFile(file,{
-            type: `${fileType}`,
-            disposition: `attachment; filename=${filename}`,
-        });
+      join(process.cwd() + '/uploads', `${documents.filename}`),
+    );
+    const result = new StreamableFile(file, {
+      type: `${fileType}`,
+      disposition: `attachment; filename=${filename}`,
+    });
     return result;
   }
   async deleteFile(fileId: number, user_id: number): Promise<void> {
     try {
-      const fileDelete = await this.documentRepository.findOne({where: {id: fileId}})
+      const fileDelete = await this.documentRepository.findOne({
+        where: { id: fileId },
+      });
       if (!fileDelete) {
         throw new NotFoundException('File not found');
       }
       if (fileDelete.user_id !== user_id) {
-        throw new ForbiddenException('You do not have permission to edit this file');
+        throw new ForbiddenException(
+          'You do not have permission to edit this file',
+        );
       }
-      await fs.promises.unlink(process.cwd()+'/uploads/'+fileDelete.filename);
+      await fs.promises.unlink(
+        process.cwd() + '/uploads/' + fileDelete.filename,
+      );
       await this.documentRepository.remove(fileDelete);
-
     } catch (error) {
-      throw new NotFoundException(error);;
+      throw new NotFoundException(error);
     }
   }
   async deleteFolderContents(): Promise<void> {
     try {
-      const files = await fs.promises.readdir(process.cwd()+'/uploads/');
+      const files = await fs.promises.readdir(process.cwd() + '/uploads/');
       for (const file of files) {
-        await fs.promises.unlink(process.cwd()+'/uploads/'+file.toString());
+        await fs.promises.unlink(process.cwd() + '/uploads/' + file.toString());
       }
-      
     } catch (error) {
       console.error('Error deleting files:', error);
       throw error;

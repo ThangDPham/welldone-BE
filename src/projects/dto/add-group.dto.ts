@@ -5,7 +5,7 @@ export class AddGroupDto {
   @ApiProperty({
     description: 'ID of the group to add to the project',
     example: 1,
-    required: true
+    required: true,
   })
   @IsNumber()
   groupId: number;

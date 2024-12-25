@@ -1,34 +1,41 @@
 import { Task } from 'src/tasks/entities';
 import { User } from 'src/users/entities';
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 @Entity('documents')
 export class DocumentFile {
-    @PrimaryGeneratedColumn()
-    id: number;
-  
-    @ManyToOne(() => Task, { onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'task_id' })
-    task: Task;
-    
-    @Column()
-    task_id: number;
-  
-    @ManyToOne(() => User, { onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'user_id' })
-    user: User;
-    @Column()
-    user_id: number;  
-  
-    @Column()
-    originalname: string;
-    @Column()
-    mimetype: string;
-    @Column()
-    destination: string;
-    @Column()
-    filename: string;
-    @Column()
-    size: number;
-    @CreateDateColumn({ name: 'created_at' })
-    createdAt: Date;
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @ManyToOne(() => Task, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'task_id' })
+  task: Task;
+
+  @Column()
+  task_id: number;
+
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_id' })
+  user: User;
+  @Column()
+  user_id: number;
+
+  @Column()
+  originalname: string;
+  @Column()
+  mimetype: string;
+  @Column()
+  destination: string;
+  @Column()
+  filename: string;
+  @Column()
+  size: number;
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
 }
